@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ride App - Register</title>
+<style>
+  body { margin:0; font-family:'Arial', sans-serif; background:#eef2f7; display:flex; justify-content:center; align-items:center; height:100vh; }
+  .register-card {
+    background:#fff; padding:40px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); width:350px; text-align:center;
+  }
+  h2 { color:#16a085; margin-bottom:20px; }
+  label { display:block; margin-bottom:15px; text-align:left; font-weight:bold; }
+  input[type="radio"] { margin-right:10px; }
+  button {
+    background:#16a085; color:#fff; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; width:100%;
+  }
+  button:hover { background:#1abc9c; }
+</style>
+</head>
+<body>
+
+<div class="register-card">
+  <h2>Create Account</h2>
+  <form action="/register" method="POST">
+    <label>
+      <input type="radio" name="user_type" value="passenger" required> Passenger
+    </label>
+    <label>
+      <input type="radio" name="user_type" value="driver" required> Driver
+    </label>
+    <button type="submit">Continue</button>
+  </form>
+</div>
+
+</body>
+</html>

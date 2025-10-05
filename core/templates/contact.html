@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ride App - Contact</title>
+<style>
+  body { margin:0; font-family:'Arial', sans-serif; background:#f0f4f7; }
+  header { background:#1abc9c; color:#fff; padding:20px; text-align:center; }
+  nav a { color:#fff; margin:0 15px; text-decoration:none; font-weight:bold; }
+  nav a:hover { text-decoration: underline; }
+  .contact-form {
+    max-width:600px; margin:50px auto; padding:30px; background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1);
+  }
+  .contact-form h2 { color:#16a085; margin-bottom:20px; }
+  .contact-form input, .contact-form textarea {
+    width:100%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ccc;
+  }
+  .contact-form button {
+    background:#16a085; color:#fff; padding:10px 20px; border:none; border-radius:8px; cursor:pointer;
+  }
+  .contact-form button:hover { background:#1abc9c; }
+  footer { text-align:center; padding:20px; background:#2c3e50; color:#fff; margin-top:50px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Contact Us</h1>
+  <nav>
+    <a href="home.html">Home</a>
+    <a href="career.html">Career</a>
+    <a href="register">Register</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+
+<section class="contact-form">
+  <h2>Get in Touch</h2>
+  <form onsubmit="alert('Thank you for contacting us!'); return false;">
+    <input type="text" placeholder="Your Name" required>
+    <input type="email" placeholder="Your Email" required>
+    <textarea placeholder="Your Message" rows="5" required></textarea>
+    <button type="submit">Send Message</button>
+  </form>
+</section>
+
+<footer>
+  &copy; 2025 Ride App. All Rights Reserved.
+</footer>
+
+</body>
+</html>
