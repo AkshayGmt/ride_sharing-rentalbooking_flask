@@ -1,0 +1,9 @@
+Gooogle Api
+Rozarpay secret key
+gmail id
+mongodb database connect
+create superuser
+secrect keyd
+
+
+map api:AIzaSyA9zEAQ971_2QPO-grqmLi4I_DPOGqaLxI
