@@ -1,0 +1,113 @@
+<!-- ride_status.html -->
+<!doctype html>
+<html>
+<head>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_API_KEY"></script>
+</head>
+<body>
+  <h3>Ride Status: <span id="ride_status">{{ booking.status }}</span></h3>
+
+  <div id="map" style="width:70%; height:400px; display:inline-block"></div>
+
+  <div style="width:28%; display:inline-block; vertical-align:top;">
+    <h4>Driver</h4>
+    <div id="driver_info">
+      {% if booking.assigned_driver %}
+        <p>{{ booking.assigned_driver.name }}</p>
+      {% else %}
+        <p>No driver assigned yet</p>
+      {% endif %}
+    </div>
+
+    <h4>Chat</h4>
+    <div id="chat_box" style="height:300px; overflow:auto; border:1px solid #ccc; padding:6px;"></div>
+    <input id="chat_input" placeholder="Type message" style="width:100%"/>
+    <button id="send_btn">Send</button>
+
+    <h4>SOS</h4>
+    <button id="sos_btn" style="background:red;color:white;">SOS</button>
+  </div>
+
+<script>
+const rideId = "{{ booking.id }}";
+const passengerId = "passenger:{{ session['passenger_id'] }}";
+
+const socket = io();
+
+// join room
+socket.emit("join_ride", { ride_id: rideId, role: "passenger", user_id: "{{ session['passenger_id'] }}" });
+
+// initialize map
+let map, driverMarker;
+function initMap() {
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: {{ booking.pickup_lat }}, lng: {{ booking.pickup_lng }} },
+    zoom: 14
+  });
+  new google.maps.Marker({ position: { lat: {{ booking.pickup_lat }}, lng: {{ booking.pickup_lng }} }, map, title:"Pickup" });
+  new google.maps.Marker({ position: { lat: {{ booking.drop_lat }}, lng: {{ booking.drop_lng }} }, map, title:"Drop" });
+}
+initMap();
+
+// listen for driver location updates
+socket.on("driver_location", function(data){
+  const lat = data.lat, lng = data.lng;
+  if(!driverMarker) {
+    driverMarker = new google.maps.Marker({ position: {lat, lng}, map, title: "Driver", icon: null });
+  } else {
+    driverMarker.setPosition({lat, lng});
+  }
+  // Optionally compute ETA via Distance Matrix API
+});
+
+// ride updates
+socket.on("ride_update", function(data){
+  document.getElementById("ride_status").innerText = data.status;
+  if(data.status === "confirmed" && data.driver){
+    document.getElementById("driver_info").innerHTML = `<b>${data.driver.name}</b>`;
+  }
+  if(data.status === "driver_rejected"){
+    alert("Driver rejected the ride, please choose another driver.");
+    // optionally redirect to select driver page
+  }
+  if(data.status === "completed"){
+    alert("Ride completed.");
+    // chat history auto-deleted by server; you can clear UI
+    document.getElementById("chat_box").innerHTML = "";
+  }
+});
+
+// chat
+document.getElementById('send_btn').onclick = function(){
+  const text = document.getElementById('chat_input').value.trim();
+  if(!text) return;
+  socket.emit('send_message', { ride_id: rideId, sender: passengerId, message: text });
+  document.getElementById('chat_input').value = '';
+};
+
+socket.on('new_message', function(m){
+  const el = document.getElementById('chat_box');
+  el.innerHTML += `<div><b>${m.sender}</b>: ${m.message}</div>`;
+  el.scrollTop = el.scrollHeight;
+});
+
+// SOS
+document.getElementById('sos_btn').onclick = function(){
+  // get current location
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(function(pos){
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      socket.emit('sos', { ride_id: rideId, passenger_id: "{{ session['passenger_id'] }}", lat, lng });
+      alert("SOS sent to emergency contacts and services.");
+    });
+  } else {
+    alert("Geolocation not available");
+  }
+};
+
+// optionally listen to system messages
+socket.on('system', function(m){ console.log('sys', m); });
+</script>
+</body>
+</html>

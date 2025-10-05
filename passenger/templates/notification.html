@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Passenger Notifications</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f6f9;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 240px;
+      background: #343a40;
+      color: #fff;
+      padding: 20px 15px;
+    }
+    .sidebar img {
+      display: block;
+      margin: 0 auto 10px auto;
+      max-width: 120px;
+    }
+    .sidebar h3 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+    }
+    .sidebar a {
+      display: block;
+      color: #ddd;
+      padding: 10px;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-bottom: 5px;
+      font-size: 0.95rem;
+    }
+    .sidebar a:hover {
+      background: #495057;
+      color: #fff;
+    }
+    .content {
+      margin-left: 260px;
+      padding: 30px;
+    }
+    .card {
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+    .notif-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .notif-item:last-child {
+      border-bottom: none;
+    }
+    .notif-item.unread {
+      background-color: #e9f3ff;
+      font-weight: 500;
+    }
+    .notif-time {
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+    <h3>MyApp</h3>
+    <a href="{{ url_for('passenger.ride_booking') }}">🚖 Ride Booking</a>
+    <a href="{{ url_for('passenger.rental_booking') }}">🚗 Rental Booking</a>
+    <a href="{{ url_for('passenger.passenger_history') }}">📜 Ride & Rental History</a>
+    <a href="{{ url_for('passenger.notifications_view') }}">🔔 Notifications</a>
+    <a href="{{ url_for('passenger.wallet_home') }}">👛 Wallet</a>
+    <a href="{{ url_for('passenger.settings') }}">⚙️ Settings</a>
+    <a href="{{ url_for('passenger.logout') }}">🚪 Logout</a>
+  </div>
+
+  <!-- Page Content -->
+  <div class="content">
+    <h3 class="mb-4">📩 Notifications 
+      {% if unread_count > 0 %}
+        <span class="badge bg-danger">{{ unread_count }} Unread</span>
+      {% endif %}
+    </h3>
+
+    <div class="row g-4">
+      <!-- Ride Notifications -->
+      <div class="col-md-4">
+        <div class="card p-3">
+          <h5 class="mb-3">🚖 Ride Notifications</h5>
+          {% if ride_notes %}
+            {% for note in ride_notes %}
+              <div class="notif-item {% if not note.is_read %}unread{% endif %}">
+                {{ note.message }}
+                <div class="notif-time">{{ note.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">No ride notifications</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Rental Notifications -->
+      <div class="col-md-4">
+        <div class="card p-3">
+          <h5 class="mb-3">🚗 Rental Notifications</h5>
+          {% if rental_notes %}
+            {% for note in rental_notes %}
+              <div class="notif-item {% if not note.is_read %}unread{% endif %}">
+                {{ note.message }}
+                <div class="notif-time">{{ note.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">No rental notifications</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Payment Notifications -->
+      <div class="col-md-4">
+        <div class="card p-3">
+          <h5 class="mb-3">💳 Payment Notifications</h5>
+          {% if payment_notes %}
+            {% for note in payment_notes %}
+              <div class="notif-item {% if not note.is_read %}unread{% endif %}">
+                {{ note.message }}
+                <div class="notif-time">{{ note.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted">No payment notifications</p>
+          {% endif %}
+        </div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+  <h3>📩 Notifications 
+    {% if unread_count > 0 %}
+      <span class="badge bg-danger">{{ unread_count }} Unread</span>
+    {% endif %}
+  </h3>
+  
+  <form action="{{ url_for('passenger.mark_all_notifications_read') }}" method="post">
+    <button type="submit" class="btn btn-sm btn-primary">Mark All as Read</button>
+  </form>
+</div>
+
+    </div>
+  </div>
+
+</body>
+</html>

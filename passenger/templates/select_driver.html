@@ -1,0 +1,14 @@
+<h2>Select a Driver for Ride {{ booking.id }}</h2>
+
+<ul>
+  {% for driver in drivers %}
+    <li>
+      {{ driver.name }} - {{ driver.vehicle }} ({{ driver.distance_km }} km away)
+      <form action="{{ url_for('passenger.confirm_driver', booking_id=booking.id, driver_id=driver.id) }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <button type="submit">Select</button>
+      </form>
+    </li>
+  {% endfor %}
+</ul>

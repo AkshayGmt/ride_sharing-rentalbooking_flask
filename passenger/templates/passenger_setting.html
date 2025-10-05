@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Passenger Settings</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background:#f4f6f8; 
+      margin:0; 
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 240px;
+      background: #343a40;
+      color: #fff;
+      padding: 20px 15px;
+    }
+    .sidebar img {
+      display: block;
+      margin: 0 auto 10px auto;
+      max-width: 120px;
+    }
+    .sidebar h3 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+    }
+    .sidebar a {
+      display: block;
+      color: #ddd;
+      padding: 10px;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-bottom: 5px;
+      font-size: 0.95rem;
+    }
+    .sidebar a:hover {
+      background: #495057;
+      color: #fff;
+    }
+    .content {
+      margin-left: 260px; /* space for sidebar */
+      padding: 30px;
+    }
+    .container {
+      max-width: 500px; 
+      margin: auto; 
+      background:white; 
+      padding: 20px; 
+      border-radius: 8px; 
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
+    h2 { 
+      text-align:center; 
+      margin-bottom:20px; 
+    }
+    .form-group { margin-bottom: 15px; }
+    label { display:block; font-weight:bold; margin-bottom:5px; }
+    input { width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; }
+    button { width:100%; padding:10px; background:#16a085; color:white; border:none; border-radius:6px; cursor:pointer; margin-top:10px; }
+    button:hover { background:#138d75; }
+    p.message { text-align:center; font-size:14px; }
+    p.success { color:green; }
+    p.error { color:red; }
+  </style>
+</head>
+<body>
+  
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+    <h3>MyApp</h3>
+    <a href="{{ url_for('passenger.ride_booking') }}">🚖 Ride Booking</a>
+    <a href="{{ url_for('passenger.rental_booking') }}">🚗 Rental Booking</a>
+    <a href="{{ url_for('passenger.passenger_history') }}">📜 Ride & Rental History</a>
+    <a href="{{ url_for('passenger.notifications_view') }}">🔔 Notifications</a>
+    <a href="{{ url_for('passenger.wallet_home') }}">👛 Wallet</a>
+    <a href="{{ url_for('passenger.settings') }}">⚙️ Settings</a>
+    <a href="{{ url_for('passenger.logout') }}">🚪 Logout</a>
+  </div>
+
+  <!-- Page Content -->
+  <div class="content">
+    <div class="container">
+      <h2>Passenger Settings</h2>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <p class="message {{ category }}">{{ message }}</p>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" name="name" value="{{ passenger.name }}" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" value="{{ passenger.email }}" required>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" name="phone" value="{{ passenger.phone }}" required>
+        </div>
+
+        <hr>
+        <h3>Change Password (Optional)</h3>
+        <div class="form-group">
+          <label>Old Password</label>
+          <input type="password" name="old_password" placeholder="Enter old password">
+        </div>
+        <div class="form-group">
+          <label>New Password</label>
+          <input type="password" name="new_password" placeholder="Enter new password">
+        </div>
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" name="confirm_password" placeholder="Confirm new password">
+        </div>
+
+        <button type="submit">Update Profile</button>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Confirm Rebook</title></head>
+<body style="font-family:Arial;padding:20px;">
+  <h3>Rebook from previous {{ booking.booking_type }} (ID: {{ booking.id }})</h3>
+  <form method="post" action="{{ url_for('passenger.rebook', booking_id=b.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <p>Pickup: <input name="pickup_name" value="{{ booking.pickup_name }}"></p>
+    <p>Drop: <input name="drop_name" value="{{ booking.drop_name }}"></p>
+    <p>Vehicle Type: <input name="vehicle_type" value="{{ booking.vehicle_type }}"></p>
+    <p>Payment Method:
+      <select name="payment_method">
+        <option value="cod">Cash on Delivery</option>
+        <option value="razorpay">Razorpay</option>
+      </select>
+    </p>
+    <button type="submit">Confirm Rebook</button>
+  </form>
+</body>
+</html>

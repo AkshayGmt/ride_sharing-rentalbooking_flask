@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Ride History</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background:#f4f6f8; }
+    h2 { text-align:center; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; background:white; border-radius:8px; overflow:hidden; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background-color: #16a085; color: white; }
+    tr:hover { background-color: #f1f1f1; }
+    .status { font-weight: bold; }
+    .completed { color: green; }
+    .pending { color: orange; }
+    .cancelled { color: red; }
+  </style>
+</head>
+<body>
+  <h2>🚖 Ride History</h2>
+  <table>
+    <tr>
+      <th>Pickup</th>
+      <th>Drop</th>
+      <th>Type</th>
+      <th>Option</th>
+      <th>Vehicle</th>
+      <th>Fare (₹)</th>
+      <th>Status</th>
+      <th>Date</th>
+    </tr>
+    {% for ride in rides %}
+    <tr>
+      <td>{{ ride.pickup_location }}</td>
+      <td>{{ ride.drop_location }}</td>
+      <td>{{ ride.ride_type }}</td>
+      <td>{{ 'Shared' if ride.shared else 'Private' }}</td>
+      <td>{{ ride.vehicle_type }}</td>
+      <td>{{ ride.final_fare }}</td>
+      <td class="status {{ ride.status }}">{{ ride.status.capitalize() }}</td>
+      <td>{{ ride.created_at.strftime('%d-%m-%Y %H:%M') }}</td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="8" style="text-align:center;">No ride history available.</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

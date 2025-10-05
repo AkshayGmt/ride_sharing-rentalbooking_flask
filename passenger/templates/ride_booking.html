@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ride Booking</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      background: #f5f7fa;
+    }
+
+    /* Left Navigation Sidebar */
+    .nav-sidebar {
+      width: 220px;
+      background: #16a085;
+      color: white;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    .nav-sidebar h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .nav-sidebar a {
+      display: block;
+      padding: 12px;
+      margin: 8px 0;
+      text-decoration: none;
+      color: white;
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+    .nav-sidebar a:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* Middle Ride Booking Panel */
+    .booking-panel {
+      width: 350px;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      overflow-y: auto;
+    }
+    .booking-panel img {
+      width: 100px;
+      margin: 0 auto 15px auto;
+      display: block;
+      cursor: pointer;
+    }
+    .booking-panel h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    input, select {
+      width: 100%;
+      padding: 7px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #16a085;
+      border: none;
+      color: white;
+      font-size: 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #138d75;
+    }
+
+    /* Right Map Area */
+    .map {
+      flex: 1;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Left Navigation Sidebar -->
+<div class="nav-sidebar">
+  <h2>Dashboard</h2>
+  <a href="{{ url_for('passenger.ride_booking') }}">🚖 Ride Booking</a>
+  <a href="{{ url_for('passenger.rental_booking') }}">🚗 Rental Booking</a>
+  <a href="{{ url_for('passenger.passenger_history') }}">📜 Ride & Rental History</a>
+  <a href="{{ url_for('passenger.notifications_view') }}">🔔 Notifications</a>
+  <a href="{{ url_for('passenger.wallet_home') }}">👛 Wallet</a>
+  <a href="{{ url_for('passenger.settings') }}">⚙️ Settings</a>
+  <a href="{{ url_for('passenger.logout') }}">🚪 Logout</a>
+</div>
+
+<!-- Middle Ride Booking Form -->
+<div class="booking-panel">
+  <a href="{{ url_for('passenger.passenger_dashboard') }}">
+    <img src="{{ url_for('static', filename='img/app_logo.png') }}" alt="App Logo">
+  </a>
+  <h2>🚖 Ride Booking</h2>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <p style="color: {% if category=='error' %}red{% else %}green{% endif %}; font-size:13px;">
+          {{ message }}
+        </p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+      <label>Pickup Location</label>
+      <input type="text" id="pickup" name="pickup" placeholder="Enter pickup" required>
+    </div>
+    <div class="form-group">
+      <label>Drop Location</label>
+      <input type="text" id="drop" name="drop" placeholder="Enter drop" required>
+    </div>
+
+    <div class="form-group">
+      <label>Ride Type</label>
+      <select name="ride_type" id="ride_type" onchange="toggleSchedule()" required>
+        <option value="on_demand">On-Demand</option>
+        <option value="scheduled">Scheduled</option>
+      </select>
+    </div>
+    <div class="form-group" id="schedule_time" style="display:none;">
+      <label>Schedule Date & Time</label>
+      <input type="datetime-local" name="scheduled_time">
+    </div>
+
+    <div class="form-group">
+      <label>Ride Option</label>
+      <select name="ride_option" required>
+        <option value="private">Private Ride</option>
+        <option value="shared">Shared Ride</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Vehicle Type</label>
+      <select name="vehicle_type" required>
+        <option value="car">Car</option>
+        <option value="van">Van</option>
+        <option value="bike">Bike</option>
+        <option value="auto">Auto</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Preferences</label>
+      <label><input type="checkbox" name="ac_pref"> AC</label><br>
+      <label><input type="checkbox" name="female_pref"> Female Driver</label><br>
+      <label><input type="checkbox" name="extra_luggage"> Extra Luggage Space</label>
+    </div>
+
+    <div class="form-group">
+      <label>Coupon Code</label>
+      <input type="text" name="coupon_code" placeholder="e.g. FIRST50">
+    </div>
+
+    <div class="form-group">
+      <label>Payment Method</label>
+      <select name="payment_method" required>
+        <option value="cod">Cash on Delivery</option>
+        <option value="razorpay">Razorpay</option>
+      </select>
+    </div>
+
+    <button type="submit">Confirm Booking</button>
+  </form>
+</div>
+
+<!-- Right Map -->
+<div id="map" class="map"></div>
+
+<script>
+function toggleSchedule() {
+  var rideType = document.getElementById("ride_type").value;
+  document.getElementById("schedule_time").style.display =
+    rideType === "scheduled" ? "block" : "none";
+}
+
+function initMap() {
+  var map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 14,
+    center: {lat: 28.6139, lng: 77.2090}
+  });
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var userLocation = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      map.setCenter(userLocation);
+
+      new google.maps.Marker({
+        position: userLocation,
+        map: map,
+        title: "Your Location"
+      });
+
+      document.getElementById("pickup").value = 
+        userLocation.lat + ", " + userLocation.lng;
+    });
+  }
+}
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+
+</body>
+</html>

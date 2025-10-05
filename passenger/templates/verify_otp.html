@@ -1,0 +1,7 @@
+<h2>Verify OTP ({{ phone }})</h2>
+<form method="post" action="{{ url_for('passenger.verify_otp') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <input type="text" name="otp" placeholder="Enter OTP" required class="form-control mb-2">
+  <button type="submit" class="btn btn-success">Verify & Login</button>
+</form>

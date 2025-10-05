@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rate Ride</title>
+  <style>
+    .star {
+      font-size: 30px;
+      cursor: pointer;
+      color: gray;
+    }
+    .star.selected {
+      color: gold;
+    }
+  </style>
+</head>
+<body>
+  <h2>Rate your ride with {{ booking.assigned_driver.name }}</h2>
+
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div id="star-container">
+      {% for i in range(1,6) %}
+        <span class="star" data-value="{{ i }}">★</span>
+      {% endfor %}
+    </div>
+    <input type="hidden" name="rating" id="rating" required>
+
+    <textarea name="feedback" placeholder="Optional comments..." rows="4" cols="40"></textarea>
+    <br>
+    <button type="submit">Submit Rating</button>
+  </form>
+
+  <script>
+    const stars = document.querySelectorAll('.star');
+    const ratingInput = document.getElementById('rating');
+
+    stars.forEach(star => {
+      star.addEventListener('click', () => {
+        const val = star.dataset.value;
+        ratingInput.value = val;
+        stars.forEach(s => s.classList.remove('selected'));
+        for (let i = 0; i < val; i++) stars[i].classList.add('selected');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ride Payment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; text-align: center; }
+    .card { max-width: 400px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 12px; }
+    button { background: #528FF0; color: #fff; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h3>Pay for Ride</h3>
+    <p><b>Fare:</b> ₹ {{ fare }}</p>
+    <button id="rzp-button">Pay Now</button>
+  </div>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    var options = {
+      "key": "{{ key_id }}",
+      "amount": "{{ order.amount }}",
+      "currency": "{{ order.currency }}",
+      "name": "Ride Booking",
+      "description": "Fare Payment",
+      "order_id": "{{ order.id }}",
+      "handler": function (response){
+          alert("Payment Successful!");
+          window.location.href = "{{ url_for('passenger.confirm_driver', booking_id=booking_id) }}";
+      },
+      "theme": { "color": "#528FF0" }
+    };
+    var rzp1 = new Razorpay(options);
+    document.getElementById('rzp-button').onclick = function(e){
+      rzp1.open();
+      e.preventDefault();
+    }
+  </script>
+</body>
+</html>

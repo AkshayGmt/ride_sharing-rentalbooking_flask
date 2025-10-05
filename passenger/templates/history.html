@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ride & Rental History</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      display: flex;
+    }
+
+    /* Sidebar (Dashboard) */
+    .sidebar {
+      width: 240px;
+      background: #1e3c72;
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .sidebar img {
+      display: block;
+      margin: 0 auto 12px;
+      width: 80px;
+    }
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    .sidebar a {
+      display: block;
+      padding: 10px;
+      margin: 6px 0;
+      text-decoration: none;
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+    .sidebar a:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      padding: 20px;
+    }
+    .panel {
+      background: #fff;
+      padding: 18px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+    .actions a button {
+      margin-right: 6px;
+      background: #1e3c72;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .actions a button:hover {
+      background: #2a5298;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar Dashboard -->
+  <div class="sidebar">
+    <img src="/static/logo.png" alt="App Logo">
+    <h2>MyApp</h2>
+    <a href="{{ url_for('passenger.ride_booking') }}">🚖 Ride Booking</a>
+    <a href="{{ url_for('passenger.rental_booking') }}">🚗 Rental Booking</a>
+    <a href="{{ url_for('passenger.passenger_history') }}">📜 Ride & Rental History</a>
+    <a href="{{ url_for('passenger.api_notifications') }}">🔔 Notifications</a>
+    <a href="{{ url_for('passenger.wallet_home') }}">👛 Wallet</a>
+    <a href="{{ url_for('passenger.settings') }}">⚙️ Settings</a>
+    <a href="{{ url_for('passenger.logout') }}">🚪 Logout</a>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="panel">
+      <h2>Your Past Rides & Rentals</h2>
+
+      <!-- Filters -->
+      <form method="get" class="filters" action="{{ url_for('passenger.passenger_history') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <select name="booking_type">
+          <option value="">All</option>
+          <option value="ride" {% if filters.booking_type=='ride' %}selected{% endif %}>Ride</option>
+          <option value="rental" {% if filters.booking_type=='rental' %}selected{% endif %}>Rental</option>
+        </select>
+        <input type="date" name="start_date" value="{{ filters.start_date }}">
+        <input type="date" name="end_date" value="{{ filters.end_date }}">
+        <select name="status">
+          <option value="">Any status</option>
+          <option value="completed" {% if filters.status=='completed' %}selected{% endif %}>Completed</option>
+          <option value="cancelled" {% if filters.status=='cancelled' %}selected{% endif %}>Cancelled</option>
+        </select>
+        <input type="text" name="search" placeholder="Search pickup/drop/id" value="{{ filters.search }}">
+        <button type="submit">Filter</button>
+      </form>
+
+      <!-- Booking list -->
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Date</th><th>Type</th><th>Pickup / Drop / Vehicle</th>
+            <th>Fare</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings %}
+          <tr>
+            <td>{{ b.id }}</td>
+            <td>{{ b.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ b.booking_type }} {% if b.sub_type %}/ {{ b.sub_type }}{% endif %}</td>
+            <td>
+              {% if b.booking_type == 'ride' %}
+                <strong>Pickup:</strong> {{ b.pickup_name }}<br>
+                <strong>Drop:</strong> {{ b.drop_name }}
+              {% else %}
+                <strong>Vehicle:</strong> {{ b.vehicle_type }}<br>
+                {% if b.vehicle_details %}{{ b.vehicle_details.make or '' }} {{ b.vehicle_details.model or '' }}{% endif %}
+              {% endif %}
+            </td>
+            <td>₹{{ b.fare }}</td>
+            <td>{{ b.status }}</td>
+            <td class="actions">
+              <a href="{{ url_for('passenger_history.download_invoice', booking_id=b.id) }}"><button>Invoice</button></a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7">No bookings found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

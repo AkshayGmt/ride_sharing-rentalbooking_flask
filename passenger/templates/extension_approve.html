@@ -1,0 +1,9 @@
+<h2>Approve Extension</h2>
+<p>Rental ID: {{ rental.id }}</p>
+<p>Requested New End: {{ rental.extension_new_end }}</p>
+<p>Updated Fare: ₹{{ rental.extension_fare }}</p>
+<form method="POST">
+                               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <button type="submit">Approve</button>
+</form>

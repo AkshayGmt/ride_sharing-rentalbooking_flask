@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passenger Dashboard</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f7fa;
+  display: flex;
+}
+.sidebar {
+  width: 250px;
+  background: #16a085;
+  color: white;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.sidebar h2 {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.sidebar a {
+  display: block;
+  padding: 12px;
+  margin: 8px 0;
+  text-decoration: none;
+  color: white;
+  background: rgba(255,255,255,0.1);
+  border-radius: 6px;
+  transition: background 0.3s;
+}
+.sidebar a:hover {
+  background: rgba(255,255,255,0.3);
+}
+.content {
+  flex: 1;
+  padding: 30px;
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>👋 Hi, {{ passenger.name }}</h2><br>
+  <a href="{{ url_for('passenger.ride_booking') }}">🚖 Ride Booking</a>
+  <a href="{{ url_for('passenger.rental_booking') }}">🚗 Rental Booking</a>
+  <a href="{{ url_for('passenger.passenger_history') }}">📜 Ride & Rental History</a>
+  <a href="{{ url_for('passenger.notifications_view') }}">🔔 Notifications</a>
+  <a href="{{ url_for('passenger.wallet_home') }}">👛 Wallet</a>
+  <a href="{{ url_for('passenger.settings') }}">⚙️ Settings</a>
+  <a href="{{ url_for('passenger.logout') }}">🚪 Logout</a>
+</div>
+
+<div class="content">
+  <h1>Passenger Dashboard</h1>
+  <p>Welcome back, {{ passenger.name }}!</p>
+  <p>Select an option from the left menu.</p>
+</div>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+const socket = io();
+
+// join passenger room
+socket.emit("join_passenger", { passenger_id: "{{ passenger.id }}" });
+
+socket.on("ride_completed", function(data){
+    alert(`Your ride is completed! Fare: ₹${data.fare}`);
+    window.location.href = `/ride/${data.ride_id}/rate`;  // redirect to rating page
+});
+</script>
+
+</body>
+</html>

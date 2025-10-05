@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Pay</title></head>
+<body>
+  <h3>Pay for Rental (₹{{ booking.final_fare }})</h3>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <button id="rzpay_btn">Pay Now</button>
+
+  <script>
+    const order = {{ razorpay_order | tojson }};
+    const options = {
+      "key": "{{ razorpay_key }}",
+      "amount": order.amount,
+      "currency": order.currency,
+      "name": "YourApp",
+      "description": "Rental Booking",
+      "order_id": order.id,
+      "handler": function (response){
+         // On success, POST to server to update booking/payment_status
+         fetch("/rental/payment_success", {method:"POST", headers: {'Content-Type':'application/json'}, body: JSON.stringify({booking_id:"{{ booking.id }}", razorpay_payment_id: response.razorpay_payment_id, order_id: response.razorpay_order_id})})
+         .then(()=> window.location.href = "/rental/summary/{{ booking.id }}")
+      }
+    };
+    document.getElementById('rzpay_btn').onclick = function(){
+      var rzp = new Razorpay(options);
+      rzp.open();
+    }
+  </script>
+</body>
+</html>

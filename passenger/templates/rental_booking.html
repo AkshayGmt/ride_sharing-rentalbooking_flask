@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rental Booking</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      background: #f5f7fa;
+    }
+
+    /* Left Dashboard */
+    .nav-sidebar {
+      width: 250px;
+      background: #16a085;
+      color: white;
+      height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    }
+    .nav-sidebar h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .nav-sidebar a {
+      display: block;
+      padding: 12px;
+      margin: 8px 0;
+      text-decoration: none;
+      color: white;
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+    .nav-sidebar a:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* Middle Booking Form */
+    .booking-panel {
+      width: 350px;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      overflow-y: auto;
+    }
+    .booking-panel img {
+      width: 100px;
+      margin: 0 auto 15px auto;
+      display: block;
+      cursor: pointer;
+    }
+    .booking-panel h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    input, select {
+      width: 100%;
+      padding: 7px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #16a085;
+      border: none;
+      color: white;
+      font-size: 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #138d75;
+    }
+
+    /* Right Map Area */
+    .map-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .map-header {
+      background: #16a085;
+      color: white;
+      padding: 10px;
+      font-size: 18px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .map {
+      flex: 1;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Left Dashboard -->
+<div class="nav-sidebar">
+ 
+  <a href="{{ url_for('passenger.ride_booking') }}">🚖 Ride Booking</a>
+  <a href="{{ url_for('passenger.rental_booking') }}">🚗 Rental Booking</a>
+  <a href="{{ url_for('passenger.passenger_history') }}">📜 Ride & Rental History</a>
+  <a href="{{ url_for('passenger.notifications_view') }}">🔔 Notifications</a>
+  <a href="{{ url_for('passenger.wallet_home') }}">👛 Wallet</a>
+  <a href="{{ url_for('passenger.settings') }}">⚙️ Settings</a>
+  <a href="{{ url_for('passenger.logout') }}">🚪 Logout</a>
+</div>
+
+<!-- Middle Rental Booking Form -->
+<div class="booking-panel">
+  <a href="{{ url_for('passenger.passenger_dashboard') }}">
+    <img src="{{ url_for('static', filename='img/app_logo.png') }}" alt="App Logo">
+  </a>
+  <h2>🚚 Rental Booking</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <p style="color: {% if category=='error' %}red{% else %}green{% endif %}; font-size:13px;">{{ message }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="form-group">
+      <label>Ride Type</label>
+      <select name="ride_type" required>
+        <option value="on_demand">On-Demand</option>
+        <option value="scheduled">Scheduled</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Vehicle Type</label>
+      <select name="vehicle_type" required>
+        <option value="car">Car</option>
+        <option value="van">Van</option>
+        <option value="truck">Truck</option>
+        <option value="bike">Bike</option>
+        <option value="mini_truck">Mini Truck</option>
+        <option value="pickup_truck">Pickup Truck</option>
+        <option value="mhcv">M&HCV</option>
+        <option value="tractor">Tractor</option>
+        <option value="construction">Construction Vehicle</option>
+        <option value="cargo_van">Cargo Van</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Load Type</label>
+      <input type="text" name="load_type" placeholder="e.g. Furniture, Documents" required>
+    </div>
+
+    <div class="form-group">
+      <label>Rental Duration</label>
+      <select name="rental_duration" required>
+        <option value="hourly">Hourly</option>
+        <option value="daily">Daily</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Start Time</label>
+      <input type="datetime-local" name="start_time" required>
+    </div>
+    <div class="form-group">
+      <label>End Time</label>
+      <input type="datetime-local" name="end_time" required>
+    </div>
+
+    <div class="form-group">
+      <label>Pickup Location</label>
+      <input type="text" id="pickup_name" name="pickup_name" placeholder="Pickup location" required>
+      <input type="hidden" id="pickup_coords" name="pickup_coords">
+    </div>
+    <div class="form-group">
+      <label>Drop Location</label>
+      <input type="text" id="drop_name" name="drop_name" placeholder="Drop location" required>
+      <input type="hidden" id="drop_coords" name="drop_coords">
+    </div>
+
+    <div class="form-group">
+      <label>Optional Add-ons</label>
+      <label><input type="checkbox" name="addons" value="gps"> GPS</label>
+      <label><input type="checkbox" name="addons" value="insurance"> Insurance</label>
+      <label><input type="checkbox" name="addons" value="child_seat"> Child Seat</label>
+    </div>
+
+    <div class="form-group">
+      <label>Payment Method</label>
+      <select name="payment_method" required>
+        <option value="cod">Cash on Delivery</option>
+        <option value="razorpay">Razorpay</option>
+      </select>
+    </div>
+
+    <button type="submit">Confirm Rental</button>
+  </form>
+</div>
+
+<!-- Right Map with Title -->
+<div class="map-area">
+  <div class="map-header">🗺️ Rental Map</div>
+  <div id="map" class="map"></div>
+</div>
+
+<script>
+let map, pickupMarker, dropMarker;
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 14,
+    center: { lat: 28.6139, lng: 77.2090 } // default location
+  });
+
+  const geocoder = new google.maps.Geocoder();
+
+  // Get user location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      const userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+      map.setCenter(userLocation);
+
+      pickupMarker = new google.maps.Marker({
+        position: userLocation,
+        map: map,
+        draggable: true,
+        title: "Pickup Location"
+      });
+
+      document.getElementById("pickup_coords").value = userLocation.lat + "," + userLocation.lng;
+      geocoder.geocode({ location: userLocation }, function(results, status) {
+        if (status === "OK" && results[0]) {
+          document.getElementById("pickup_name").value = results[0].formatted_address;
+        }
+      });
+
+      // Update when dragged
+      pickupMarker.addListener("dragend", function() {
+        const pos = pickupMarker.getPosition();
+        document.getElementById("pickup_coords").value = pos.lat() + "," + pos.lng();
+        geocoder.geocode({ location: pos }, function(results, status) {
+          if (status === "OK" && results[0]) {
+            document.getElementById("pickup_name").value = results[0].formatted_address;
+          }
+        });
+      });
+    });
+  }
+
+  // Map click for drop location
+  map.addListener("click", function(e) {
+    if (dropMarker) dropMarker.setMap(null);
+
+    dropMarker = new google.maps.Marker({
+      position: e.latLng,
+      map: map,
+      draggable: true,
+      title: "Drop Location"
+    });
+
+    document.getElementById("drop_coords").value = e.latLng.lat() + "," + e.latLng.lng();
+    geocoder.geocode({ location: e.latLng }, function(results, status) {
+      if (status === "OK" && results[0]) {
+        document.getElementById("drop_name").value = results[0].formatted_address;
+      }
+    });
+
+    dropMarker.addListener("dragend", function() {
+      const pos = dropMarker.getPosition();
+      document.getElementById("drop_coords").value = pos.lat() + "," + pos.lng();
+      geocoder.geocode({ location: pos }, function(results, status) {
+        if (status === "OK" && results[0]) {
+          document.getElementById("drop_name").value = results[0].formatted_address;
+        }
+      });
+    });
+  });
+}
+</script>
+
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+
+</body>
+</html>

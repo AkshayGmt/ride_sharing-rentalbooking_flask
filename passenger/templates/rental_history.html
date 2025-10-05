@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Rental History</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background:#f4f6f8; }
+    h2 { text-align:center; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; background:white; border-radius:8px; overflow:hidden; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+    th { background-color: #16a085; color: white; }
+    tr:hover { background-color: #f1f1f1; }
+    .status { font-weight: bold; }
+    .completed { color: green; }
+    .pending { color: orange; }
+    .cancelled { color: red; }
+  </style>
+</head>
+<body>
+  <h2>🚚 Rental History</h2>
+  <table>
+    <tr>
+      <th>Vehicle</th>
+      <th>Load Type</th>
+      <th>Ride Type</th>
+      <th>Duration</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Fare (₹)</th>
+      <th>Status</th>
+    </tr>
+    {% for rental in rentals %}
+    <tr>
+      <td>{{ rental.vehicle_type }}</td>
+      <td>{{ rental.load_type }}</td>
+      <td>{{ rental.ride_type }}</td>
+      <td>{{ rental.rental_duration }}</td>
+      <td>{{ rental.start_time.strftime('%d-%m-%Y %H:%M') }}</td>
+      <td>{{ rental.end_time.strftime('%d-%m-%Y %H:%M') }}</td>
+      <td>{{ rental.estimated_fare }}</td>
+      <td class="status {{ rental.status }}">{{ rental.status.capitalize() }}</td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="8" style="text-align:center;">No rental history available.</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

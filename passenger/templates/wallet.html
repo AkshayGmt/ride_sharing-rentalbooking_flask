@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Wallet</title>
+  <style>
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      display: flex;
+    }
+
+    /* Sidebar (Dashboard) */
+    .sidebar {
+      width: 240px;
+      background: #1e293b;
+      color: white;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .sidebar h3 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .sidebar a {
+      display: block;
+      padding: 12px;
+      margin: 6px 0;
+      text-decoration: none;
+      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+    .sidebar a:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Main content */
+    .content {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 900px;
+      margin: auto; /* centers wallet section */
+    }
+
+    /* Cards */
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    /* Buttons & Inputs */
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #0ea5a2;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn:hover {
+      background: #0c7c7a;
+    }
+    input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 100%;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar Dashboard -->
+  <div class="sidebar">
+    <h3>🚖 Passenger</h3>
+    <a href="{{ url_for('passenger.ride_booking') }}">🚖 Ride Booking</a>
+    <a href="{{ url_for('passenger.rental_booking') }}">🚗 Rental Booking</a>
+    <a href="{{ url_for('passenger.passenger_history') }}">📜 Ride & Rental History</a>
+    <a href="{{ url_for('passenger.notifications_view') }}">🔔 Notifications</a>
+    <a href="{{ url_for('passenger.wallet_home') }}">👛 Wallet</a>
+    <a href="{{ url_for('passenger.settings') }}">⚙️ Settings</a>
+    <a href="{{ url_for('passenger.logout') }}">🚪 Logout</a>
+  </div>
+
+  <!-- Main Wallet Section -->
+  <div class="content">
+    <!-- Balance -->
+    <div class="card">
+      <h2>Wallet Balance: ₹{{ wallet.balance }}</h2>
+    </div>
+
+    <!-- Add Money -->
+    <div class="card">
+      <h3>Add Money</h3>
+      <form method="post" action="{{ url_for('passenger.wallet_add') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="number" step="0.01" name="amount" placeholder="Enter amount" required>
+        <button type="submit" class="btn">Add Money</button>
+      </form>
+    </div>
+
+    <!-- Send Money -->
+    <div class="card">
+      <h3>Send Money</h3>
+      <form method="post" action="{{ url_for('passenger.wallet_send') }}">
+        <input type="text" name="receiver_id" placeholder="Receiver ID" required>
+        <input type="number" step="0.01" name="amount" placeholder="Enter amount" required>
+        <button type="submit" class="btn">Send</button>
+      </form>
+    </div>
+
+    <!-- Transactions -->
+    <div class="card">
+      <h3>Transaction History</h3>
+      <table>
+        <tr>
+          <th>Type</th><th>Amount</th><th>To/From</th><th>Status</th><th>Date</th>
+        </tr>
+        {% for txn in transactions %}
+        <tr>
+          <td>{{ txn.txn_type }}</td>
+          <td>₹{{ txn.amount }}</td>
+          <td>
+            {% if txn.to %} → {{ txn.to }}
+            {% elif txn.from_user %} ← {{ txn.from_user }}
+            {% else %}-{% endif %}
+          </td>
+          <td>{{ txn.status }}</td>
+          <td>{{ txn.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No transactions yet.</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</body>
+</html>
