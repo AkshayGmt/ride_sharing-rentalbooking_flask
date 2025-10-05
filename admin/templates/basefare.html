@@ -1,0 +1,181 @@
+<div class="container-fluid mt-4">
+  <div class="row">
+    <!-- Sidebar (Optional for Fare Management Modules) -->
+    <div class="col-md-3">
+      <div class="list-group">
+        <a href="#tierManagement" class="list-group-item list-group-item-action active">Tier Management</a>
+        <a href="#baseFareCharges" class="list-group-item list-group-item-action">Base Fare & Per KM/Minute</a>
+        <a href="#dynamicPricing" class="list-group-item list-group-item-action">Dynamic Pricing</a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-9">
+      <!-- Tier Management -->
+      <div id="tierManagement" class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          Tier Management
+        </div>
+        <div class="card-body">
+          <p>Update city tier classifications. Optionally upload CSV for bulk updates.</p>
+          <form>
+            <div class="mb-3">
+              <label class="form-label">City Name</label>
+              <input type="text" class="form-control" placeholder="Enter city name">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Select Tier</label>
+              <select class="form-select">
+                <option value="1">Tier 1 (Metropolitan)</option>
+                <option value="2">Tier 2 (Mid-tier)</option>
+                <option value="3">Tier 3 (Other towns)</option>
+              </select>
+            </div>
+            <div class="d-flex align-items-center">
+              <button class="btn btn-success me-2">Add / Update Tier</button>
+              <button class="btn btn-secondary">Upload CSV</button>
+            </div>
+          </form>
+
+          <!-- Current Tier Table -->
+          <table class="table table-striped table-hover mt-3">
+            <thead>
+              <tr>
+                <th>City</th>
+                <th>Current Tier</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Delhi</td>
+                <td>Tier 1</td>
+                <td><button class="btn btn-sm btn-primary">Edit</button></td>
+              </tr>
+              <tr>
+                <td>Jaipur</td>
+                <td>Tier 2</td>
+                <td><button class="btn btn-sm btn-primary">Edit</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Base Fare & Per KM / Minute Charges -->
+      <div id="baseFareCharges" class="card mb-4">
+        <div class="card-header bg-success text-white">
+          Base Fare & Per KM / Minute Charges
+        </div>
+        <div class="card-body">
+          <form>
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Tier</label>
+                <select class="form-select">
+                  <option>Tier 1</option>
+                  <option>Tier 2</option>
+                  <option>Tier 3</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Vehicle Type</label>
+                <select class="form-select">
+                  <option>Car</option>
+                  <option>Bike</option>
+                  <option>Van</option>
+                  <option>Truck</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Ride Type</label>
+                <select class="form-select">
+                  <option>Shared</option>
+                  <option>Private</option>
+                  <option>On-Demand</option>
+                  <option>Scheduled</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Base Fare (₹)</label>
+                <input type="number" class="form-control" placeholder="Base Fare">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Per KM Charge (₹)</label>
+                <input type="number" class="form-control" placeholder="Per KM">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Per Minute Charge (₹)</label>
+                <input type="number" class="form-control" placeholder="Per Minute">
+              </div>
+            </div>
+
+            <button class="btn btn-success">Save Charges</button>
+          </form>
+
+          <!-- Example Table -->
+          <table class="table table-hover table-striped mt-3">
+            <thead>
+              <tr>
+                <th>Tier</th>
+                <th>Vehicle</th>
+                <th>Ride Type</th>
+                <th>Base Fare</th>
+                <th>Per KM</th>
+                <th>Per Minute</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Tier 1</td>
+                <td>Car</td>
+                <td>Private</td>
+                <td>100</td>
+                <td>12</td>
+                <td>2</td>
+                <td><button class="btn btn-sm btn-primary">Edit</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Dynamic Pricing (Optional) -->
+      <div id="dynamicPricing" class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+          Dynamic Pricing (Surge)
+        </div>
+        <div class="card-body">
+          <p>Set surge pricing rules for peak hours, special events, or high-demand zones.</p>
+          <form>
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Vehicle Type</label>
+                <select class="form-select">
+                  <option>Car</option>
+                  <option>Bike</option>
+                  <option>Van</option>
+                  <option>Truck</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Surge Multiplier</label>
+                <input type="number" class="form-control" step="0.1" placeholder="1.0 = normal">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Time / Event</label>
+                <input type="text" class="form-control" placeholder="E.g., 8AM-10AM, Festival">
+              </div>
+            </div>
+            <button class="btn btn-success">Save Surge Rule</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
