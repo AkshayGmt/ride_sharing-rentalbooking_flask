@@ -1,0 +1,43 @@
+<!-- templates/rate_driver.html -->
+<h3>Rate Your Driver</h3>
+<div>
+  <label>Rating:</label>
+  <select id="rating">
+    <option value="5">⭐ 5</option>
+    <option value="4">⭐ 4</option>
+    <option value="3">⭐ 3</option>
+    <option value="2">⭐ 2</option>
+    <option value="1">⭐ 1</option>
+  </select>
+</div>
+<div>
+  <label>Comments (optional):</label>
+  <textarea id="comments"></textarea>
+</div>
+<button onclick="submitRating()">Submit</button>
+
+<script>
+const rideId = "{{ ride_id }}";
+const passengerId = "{{ passenger_id }}";
+
+function submitRating() {
+    const rating = document.getElementById("rating").value;
+    const comments = document.getElementById("comments").value;
+
+    fetch(`/ride/${rideId}/rate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating, comments, passenger_id: passengerId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success){
+            alert(`Rating submitted! Driver avg: ${data.avg_rating}⭐ Total Ratings: ${data.total_ratings}`);
+            window.location.href = "/passenger/dashboard";
+        } else {
+            alert("Failed to submit rating");
+        }
+    })
+    .catch(err => console.error(err));
+}
+</script>
