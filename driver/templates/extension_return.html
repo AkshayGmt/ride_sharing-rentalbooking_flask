@@ -1,0 +1,20 @@
+<h2>Return Vehicle</h2>
+<form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label>Vehicle Condition:</label>
+    <select name="condition">
+        <option value="Good">Good</option>
+        <option value="Damaged">Damaged</option>
+    </select>
+
+    <input type="hidden" name="gps_coords" id="gps_return">
+    <button type="submit">Confirm Return</button>
+</form>
+
+<script>
+navigator.geolocation.getCurrentPosition(function(pos){
+    document.getElementById('gps_return').value =
+        pos.coords.latitude + "," + pos.coords.longitude;
+});
+</script>

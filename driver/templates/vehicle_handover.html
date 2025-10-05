@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vehicle Handover</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='driver/style.css') }}">
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f0f0f0; }
+        button { padding: 5px 10px; margin: 2px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Vehicle Handover</h2>
+    <table>
+        <tr>
+            <th>Rental ID</th>
+            <th>Passenger</th>
+            <th>Vehicle</th>
+            <th>Pickup Time</th>
+            <th>Actions</th>
+        </tr>
+        {% for rental in rentals %}
+        <tr>
+            <td>{{ rental.id }}</td>
+            <td>{{ rental.passenger.name }}</td>
+            <td>{{ rental.vehicle_type }}</td>
+            <td>{{ rental.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>
+                <form action="{{ url_for('driver.complete_handover', rental_id=rental.id) }}" method="POST" enctype="multipart/form-data">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <input type="hidden" name="gps_coords" id="gps_{{ rental.id }}">
+                    <input type="file" name="handover_photo" accept="image/*,application/pdf">
+                    <button type="submit">Complete Handover</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <script>
+        // Get current location for each rental
+        {% for rental in rentals %}
+        navigator.geolocation.getCurrentPosition(function(pos){
+            document.getElementById('gps_{{ rental.id }}').value = pos.coords.latitude + "," + pos.coords.longitude;
+        });
+        {% endfor %}
+    </script>
+</body>
+</html>

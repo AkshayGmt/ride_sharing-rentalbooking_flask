@@ -1,0 +1,13 @@
+<h2>New Ride Request</h2>
+Pickup: {{ ride.pickup_lat }}, {{ ride.pickup_lng }} <br>
+Drop: {{ ride.drop_lat }}, {{ ride.drop_lng }} <br>
+<form method="POST" action="{{ url_for('driver.accept_ride', ride_id=ride.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <button type="submit">✅ Accept</button>
+</form>
+<form method="POST" action="{{ url_for('driver.reject_ride', ride_id=ride.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <button type="submit">❌ Reject</button>
+</form>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Driver Subscription</title>
+<style>
+body { 
+    font-family: Arial, sans-serif; 
+    background:#f4f6f8; 
+    margin:0; 
+    display:flex; 
+    height:100vh;
+}
+.sidebar { 
+    width:220px; 
+    background:#f8f9fa; 
+    padding:20px; 
+    box-shadow:2px 0 5px rgba(0,0,0,0.1); 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center;
+}
+.sidebar img { 
+    width:100px; 
+    margin:0 0 20px 0; 
+}
+.sidebar .card-container {
+    width:100%;
+}
+.sidebar .card { 
+    background:white; 
+    padding:12px; 
+    margin:10px 0; 
+    border-radius:6px; 
+    box-shadow:0 2px 6px rgba(0,0,0,0.1); 
+    cursor:pointer; 
+    text-align:center; 
+    font-size:15px; 
+    transition:0.2s;
+}
+.sidebar .card:hover { background:#e9f7f5; }
+
+.content { 
+    flex:1; 
+    display:flex; 
+    justify-content:center; 
+    align-items:flex-start; 
+    padding:40px;
+}
+.content-wrapper {
+    max-width:600px;
+    width:100%;
+}
+h2 { text-align:center; margin-bottom:20px; }
+.card { 
+    background:white; 
+    padding:20px; 
+    margin-bottom:20px; 
+    border-radius:8px; 
+    box-shadow:0 2px 8px rgba(0,0,0,0.1); 
+}
+button { 
+    padding:10px 20px; 
+    border:none; 
+    border-radius:6px; 
+    background:#16a085; 
+    color:white; 
+    cursor:pointer; 
+}
+button:hover { background:#138d75; }
+.message { text-align:center; font-size:14px; }
+.message.success { color:green; }
+.message.error { color:red; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <a href="{{ url_for('driver.driver_dashboard') }}">
+    <img src="{{ url_for('static', filename='img/driver_logo.png') }}" alt="App Logo">
+  </a>
+  <div class="card-container">
+    <div class="card" onclick="location.href='{{ url_for('driver.upload_documents') }}'">📄 Upload Documents</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.vehicle_registration') }}'">🚗 Vehicle Registration</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.driver_subscription') }}'">💳 Subscription</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.ride_management') }}'">🚖 Ride Management</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.rental_management_dashboard') }}'">🚚 Rental Management</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.earnings_dashboard') }}'">💰 Earnings</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.notifications_dashboard') }}'">🔔 Notifications</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.driver_settings') }}'">⚙️ Settings</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.logout_driver') }}'">🚪 Logout</div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="content-wrapper">
+    <h2>Driver Subscription</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p class="message {{ category }}">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+      <h3>Current Subscription</h3>
+      <p>Type: {{ subscription.subscription_type }}</p>
+      {% if subscription.subscription_type == 'Premium' %}
+        <p>Expires on: {{ subscription.premium_expiry.strftime('%Y-%m-%d') }}</p>
+        <p>Active hours today: {{ subscription.active_hours_today // 60 }}h {{ subscription.active_hours_today % 60 }}m</p>
+      {% else %}
+        <p>Daily earnings today: ₹{{ subscription.daily_earnings_today }}</p>
+        <p>Upgrade to Premium for unlimited earnings!</p>
+      {% endif %}
+      <p>Vehicle Add-on: {% if subscription.vehicle_addon %}Yes ({{ subscription.addon_vehicle_type }}){% else %}No{% endif %}</p>
+    </div>
+
+    <div class="card">
+      <h3>Upgrade Options</h3>
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button name="action" value="upgrade_premium">Upgrade to Premium (30 days)</button>
+      </form>
+      <form method="POST" style="margin-top:10px;">
+        <select name="addon_vehicle_type" required>
+          <option value="">Select Vehicle for Add-on</option>
+          <option value="Cargo Truck">Cargo Truck</option>
+          <option value="Mini Truck">Mini Truck</option>
+          <option value="Pickup Truck">Pickup Truck</option>
+        </select>
+        <button type="submit" name="action" value="vehicle_addon">Purchase Vehicle Add-on</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

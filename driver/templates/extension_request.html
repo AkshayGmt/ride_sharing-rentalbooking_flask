@@ -1,0 +1,8 @@
+<h2>Request Extension</h2>
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label>New End Time:</label>
+    <input type="datetime-local" name="new_end_time" required>
+    <button type="submit">Request Extension</button>
+</form>

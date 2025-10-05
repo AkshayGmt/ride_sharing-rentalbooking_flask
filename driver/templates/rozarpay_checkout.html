@@ -1,0 +1,38 @@
+<h3>Pay ₹{{ amount }} via Razorpay</h3>
+<button id="rzp-button">Pay Now</button>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  var options = {
+      "key": "{{ key_id }}",
+      "amount": "{{ order.amount }}",
+      "currency": "INR",
+      "name": "Subscription Payment",
+      "description": "Driver subscription",
+      "order_id": "{{ order.id }}",
+      "handler": function (response){
+          var form = document.createElement('form');
+          form.method = 'POST';
+          form.action = "{{ url_for('driver.subscription_payment_success') }}";
+          for (var key in response) {
+              var input = document.createElement('input');
+              input.type = 'hidden';
+              input.name = key;
+              input.value = response[key];
+              form.appendChild(input);
+          }
+          // pass subscription info
+          form.appendChild(new Input('subscription', '{{ subscription }}'));
+          {% if addon_vehicle_type %}
+          form.appendChild(new Input('addon_vehicle_type', '{{ addon_vehicle_type }}'));
+          {% endif %}
+          document.body.appendChild(form);
+          form.submit();
+      }
+  };
+  var rzp1 = new Razorpay(options);
+  document.getElementById('rzp-button').onclick = function(e){
+      rzp1.open();
+      e.preventDefault();
+  }
+</script>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rental Tracking</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+    <style>
+        #map { width: 100%; height: 400px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>Rental Tracking</h2>
+
+    {% for rental in rentals %}
+    <div>
+        <h3>Rental ID: {{ rental.id }} | Vehicle: {{ rental.vehicle_type }}</h3>
+        <p>Passenger: {{ rental.passenger.name }}</p>
+        <p>ETA: {{ rental.eta }}</p>
+        <p>Kilometers Driven: {{ rental.kilometers_driven }}</p>
+        <p>Hours Used: {{ rental.hours_used }}</p>
+        <p>Deviation Alert: {{ rental.deviation_alert }}</p>
+
+        <div id="map_{{ rental.id }}" style="width:100%;height:300px;"></div>
+        <script>
+            var map{{ rental.id }} = new google.maps.Map(document.getElementById('map_{{ rental.id }}'), {
+                zoom: 15,
+                center: {lat: 0, lng: 0}
+            });
+
+            function updateLocation{{ rental.id }}(pos){
+                var latlng = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+                map{{ rental.id }}.setCenter(latlng);
+                new google.maps.Marker({position: latlng, map: map{{ rental.id }} });
+
+                // Send to server
+                fetch('/rental/update_location/{{ rental.id }}', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                    body: 'gps_coords=' + pos.coords.latitude + ',' + pos.coords.longitude
+                });
+            }
+
+            navigator.geolocation.watchPosition(updateLocation{{ rental.id }});
+        </script>
+    </div>
+    {% endfor %}
+</body>
+</html>

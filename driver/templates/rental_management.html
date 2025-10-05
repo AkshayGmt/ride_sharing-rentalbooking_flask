@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Rental Management</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='driver/style.css') }}">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      background: #f0f2f5;
+      height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background: linear-gradient(180deg, #16a085, #1abc9c);
+      padding: 20px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+    }
+    .sidebar img {
+      width: 100px;
+      margin-bottom: 20px;
+    }
+    .card-container {
+      width: 100%;
+    }
+    .sidebar .card {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 15px;
+      transition: 0.3s;
+      color: #fff;
+    }
+    .sidebar .card:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.05);
+    }
+
+    /* Main content */
+    .content {
+      flex: 1;
+      padding: 40px;
+      overflow-y: auto;
+    }
+    .content h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    /* Dashboard Cards */
+    .dashboard-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 25px;
+      text-align: center;
+      margin-bottom: 25px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+    .dashboard-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    .dashboard-card h5 {
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+      color: #16a085;
+    }
+    .dashboard-card p {
+      font-size: 0.95rem;
+      color: #555;
+    }
+    .btn-custom {
+      margin-top: 10px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #16a085, #1abc9c);
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.3s;
+    }
+    .btn-custom:hover {
+      background: linear-gradient(90deg, #138d75, #16a085);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <a href="{{ url_for('driver.driver_dashboard') }}">
+    <img src="{{ url_for('static', filename='img/driver_logo.png') }}" alt="App Logo">
+  </a>
+  <div class="card-container">
+    <div class="card" onclick="location.href='{{ url_for('driver.upload_documents') }}'">📄 Upload Documents</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.vehicle_registration') }}'">🚗 Vehicle Registration</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.driver_subscription') }}'">💳 Subscription</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.ride_management') }}'">🚖 Ride Management</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.rental_management_dashboard') }}'">🚚 Rental Management</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.earnings_dashboard') }}'">💰 Earnings</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.notifications_dashboard') }}'">🔔 Notifications</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.driver_settings') }}'">⚙️ Settings</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.logout_driver') }}'">🚪 Logout</div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="content">
+  <h1>🚚 Rental Management Dashboard</h1>
+
+  <div class="dashboard-card">
+    <h5>🗺 Vehicle Handover</h5>
+    <p>Manage handover of vehicles to passengers.</p>
+    <a href="{{ url_for('driver.vehicle_handover') }}" class="btn-custom">Vehicle Handover</a>
+  </div>
+
+  <div class="dashboard-card">
+    <h5>📍 Rental Tracking</h5>
+    <p>Track ongoing rentals in real-time.</p>
+    <a href="{{ url_for('driver.rental_tracking') }}" class="btn-custom">Rental Tracking</a>
+  </div>
+
+  <div class="dashboard-card">
+    <h5>🔄 Returns / Extensions</h5>
+    <p>Process vehicle returns or extend rental durations.</p>
+    <a href="{{ url_for('driver.returns_extensions') }}" class="btn-custom">Returns / Extensions</a>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Driver Notifications</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      background: #f0f2f5;
+      height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background: linear-gradient(180deg, #0ea5a2, #14b8a6);
+      padding: 20px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+    }
+    .sidebar img {
+      width: 100px;
+      margin-bottom: 20px;
+    }
+    .card-container {
+      width: 100%;
+    }
+    .sidebar .card {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 15px;
+      transition: 0.3s;
+      color: #fff;
+    }
+    .sidebar .card:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.05);
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      padding: 40px;
+    }
+    h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    /* Notifications */
+    .notif {
+      background: #fff;
+      padding: 15px;
+      margin: 12px 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      border-left: 5px solid transparent;
+    }
+    .notif .icon {
+      font-size: 20px;
+    }
+    .notif .text {
+      flex: 1;
+    }
+    .notif .title {
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .notif .time {
+      font-size: 12px;
+      color: gray;
+      margin-top: 4px;
+    }
+    .unread { border-left: 5px solid #0ea5a2; }
+
+    /* Type-based styling */
+    .payment { border-left-color: #16a34a; }
+    .ride { border-left-color: #2563eb; }
+    .document { border-left-color: #9333ea; }
+    .warning { border-left-color: #dc2626; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <a href="{{ url_for('driver.driver_dashboard') }}">
+    <img src="{{ url_for('static', filename='img/driver_logo.png') }}" alt="App Logo">
+  </a>
+  <div class="card-container">
+    <div class="card" onclick="location.href='{{ url_for('driver.upload_documents') }}'">📄 Upload Documents</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.vehicle_registration') }}'">🚗 Vehicle Registration</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.driver_subscription') }}'">💳 Subscription</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.ride_management') }}'">🚖 Ride Management</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.rental_management_dashboard') }}'">🚚 Rental Management</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.earnings_dashboard') }}'">💰 Earnings</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.notifications_dashboard') }}'">🔔 Notifications</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.driver_settings') }}'">⚙️ Settings</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.logout_driver') }}'">🚪 Logout</div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="content">
+  <h2>🔔 Driver Notifications</h2>
+  <div id="notif-list">
+    {% for n in notifications %}
+      <div class="notif {{ 'unread' if not n.is_read }} {{ n.type }}">
+        <div class="icon">
+          {% if n.type == 'payment' %} 💰
+          {% elif n.type == 'ride' %} 🚖
+          {% elif n.type == 'document' %} 📄
+          {% elif n.type == 'warning' %} ⚠️
+          {% endif %}
+        </div>
+        <div class="text">
+          <div class="title">{{ n.title }}</div>
+          <div>{{ n.message }}</div>
+          <div class="time">{{ n.created_at.strftime("%d %b %Y, %H:%M") }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  const socket = io("/notifications");
+
+  // Listen for push notifications
+  socket.on("driver_notification", function(data) {
+    const div = document.createElement("div");
+    div.classList.add("notif","unread", data.type);
+
+    let icon = "🔔";
+    if (data.type === "payment") icon = "💰";
+    if (data.type === "ride") icon = "🚖";
+    if (data.type === "document") icon = "📄";
+    if (data.type === "warning") icon = "⚠️";
+
+    div.innerHTML = `
+      <div class="icon">${icon}</div>
+      <div class="text">
+        <div class="title">${data.title}</div>
+        <div>${data.message}</div>
+        <div class="time">${data.created_at}</div>
+      </div>
+    `;
+    document.getElementById("notif-list").prepend(div);
+  });
+
+  // Join driver-specific room (replace with actual driver id from session)
+  socket.emit("join", { room: "driver_{{ driver_id }}" });
+</script>
+
+</body>
+</html>
