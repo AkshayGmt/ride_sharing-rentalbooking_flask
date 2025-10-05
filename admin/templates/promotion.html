@@ -1,0 +1,146 @@
+<div class="container my-4">
+
+  <h2>Promotions & Coupons</h2>
+  
+  <!-- Add Promotion Form -->
+  <div class="card mb-4">
+    <div class="card-header">Create New Promotion</div>
+    <div class="card-body">
+      <form action="{{ url_for('promo.create_promotion') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="row">
+          <div class="col-md-3">
+            <input type="text" name="promo_code" placeholder="Promo Code" class="form-control" required>
+          </div>
+          <div class="col-md-2">
+            <select name="discount_type" class="form-control" required>
+              <option value="percentage">Percentage</option>
+              <option value="flat">Flat ₹</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <input type="number" name="discount_value" placeholder="Discount" class="form-control" step="0.01" required>
+          </div>
+          <div class="col-md-2">
+            <input type="number" name="min_booking_amount" placeholder="Min Booking" class="form-control" step="0.01">
+          </div>
+          <div class="col-md-2">
+            <input type="number" name="max_discount" placeholder="Max Discount" class="form-control" step="0.01">
+          </div>
+          <div class="col-md-1">
+            <input type="date" name="expiration_date" class="form-control" required>
+          </div>
+        </div>
+        <button class="btn btn-primary mt-3">Create</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Existing Promotions Table -->
+  <div class="card mb-4">
+    <div class="card-header">Existing Promotions</div>
+    <div class="card-body">
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Promo Code</th>
+            <th>Type</th>
+            <th>Value</th>
+            <th>Min Booking</th>
+            <th>Max Discount</th>
+            <th>Expiry</th>
+            <th>Usage/User</th>
+            <th>Total Usage</th>
+            <th>Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for promo in promotions %}
+          <tr>
+            <td>{{ promo.promo_code }}</td>
+            <td>{{ promo.discount_type }}</td>
+            <td>{{ promo.discount_value }}</td>
+            <td>{{ promo.min_booking_amount }}</td>
+            <td>{{ promo.max_discount }}</td>
+            <td>{{ promo.expiration_date.strftime('%Y-%m-%d') }}</td>
+            <td>{{ promo.usage_limit_per_user }}</td>
+            <td>{{ promo.total_usage_limit }}</td>
+            <td>{{ 'Yes' if promo.active else 'No' }}</td>
+            <td>
+              <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editPromo{{ promo.id }}">Edit</button>
+            </td>
+          </tr>
+
+          <!-- Edit Modal -->
+          <div class="modal fade" id="editPromo{{ promo.id }}" tabindex="-1">
+            <div class="modal-dialog">
+              <form action="{{ url_for('promo.edit_promotion', promo_id=promo.id) }}" method="POST">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Edit Promotion: {{ promo.promo_code }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="mb-2">
+                      <label>Discount Type</label>
+                      <select name="discount_type" class="form-control">
+                        <option value="percentage" {% if promo.discount_type=='percentage' %}selected{% endif %}>Percentage</option>
+                        <option value="flat" {% if promo.discount_type=='flat' %}selected{% endif %}>Flat ₹</option>
+                      </select>
+                    </div>
+                    <div class="mb-2">
+                      <label>Discount Value</label>
+                      <input type="number" name="discount_value" step="0.01" class="form-control" value="{{ promo.discount_value }}">
+                    </div>
+                    <div class="mb-2">
+                      <label>Min Booking</label>
+                      <input type="number" name="min_booking_amount" step="0.01" class="form-control" value="{{ promo.min_booking_amount }}">
+                    </div>
+                    <div class="mb-2">
+                      <label>Max Discount</label>
+                      <input type="number" name="max_discount" step="0.01" class="form-control" value="{{ promo.max_discount }}">
+                    </div>
+                    <div class="mb-2">
+                      <label>Expiration Date</label>
+                      <input type="date" name="expiration_date" class="form-control" value="{{ promo.expiration_date.strftime('%Y-%m-%d') }}">
+                    </div>
+                    <div class="mb-2">
+                      <label>Active</label>
+                      <input type="checkbox" name="active" {% if promo.active %}checked{% endif %}>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Referral Reward Management -->
+  <div class="card">
+    <div class="card-header">Referral Rewards</div>
+    <div class="card-body">
+      <form action="{{ url_for('promo.update_referral') }}" method="POST" class="row g-2">
+        <div class="col-md-3">
+          <input type="number" name="user_reward" class="form-control" step="0.01" value="{{ referral.user_reward if referral else 5 }}" placeholder="User Reward ₹">
+        </div>
+        <div class="col-md-3">
+          <input type="number" name="driver_reward" class="form-control" step="0.01" value="{{ referral.driver_reward if referral else 10 }}" placeholder="Driver Reward ₹">
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary">Update Rewards</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>

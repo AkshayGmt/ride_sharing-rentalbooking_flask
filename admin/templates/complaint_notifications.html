@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Complaint Notifications</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f6f8; }
+    h1 { color: #1e293b; }
+    .filters { margin-bottom: 20px; }
+    select, button { padding: 6px 10px; margin-right: 10px; }
+
+    .notification {
+      background: #fff;
+      padding: 15px;
+      margin: 10px 0;
+      border-left: 6px solid #f1c40f;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: opacity 0.3s;
+    }
+    .notification.read { opacity: 0.6; }
+    button.mark-read { padding: 4px 8px; font-size: 12px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>📝 Complaint Notifications</h1>
+
+  <!-- Filters -->
+  <div class="filters">
+    <form method="get">
+      <label>Status:</label>
+      <select name="status">
+        <option value="">All</option>
+        <option value="pending" {% if status_filter=='pending' %}selected{% endif %}>Pending</option>
+        <option value="in_progress" {% if status_filter=='in_progress' %}selected{% endif %}>In Progress</option>
+        <option value="resolved" {% if status_filter=='resolved' %}selected{% endif %}>Resolved</option>
+      </select>
+
+      <label>Sort:</label>
+      <select name="sort">
+        <option value="desc" {% if sort_order=='desc' %}selected{% endif %}>Newest first</option>
+        <option value="asc" {% if sort_order=='asc' %}selected{% endif %}>Oldest first</option>
+      </select>
+
+      <button type="submit">Apply</button>
+    </form>
+  </div>
+
+  <!-- Notifications List -->
+  <div id="complaints-container">
+    {% for c in complaints %}
+      <div class="notification {% if c.read %}read{% endif %}" id="complaint-{{ c.id }}">
+        <span>{{ c.user_name }}: {{ c.description }} ({{ c.status }})</span>
+        {% if not c.read %}
+        <button class="mark-read" data-id="{{ c.id }}">Mark as Read</button>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <script>
+    function attachMarkReadListeners() {
+      document.querySelectorAll('.mark-read').forEach(btn => {
+        if (!btn.dataset.attached) {
+          btn.dataset.attached = true;
+          btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            fetch(`/admin/complaint_notifications/mark_read_ajax/${id}`, { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+              if(data.success){
+                const div = document.getElementById(`complaint-${id}`);
+                div.classList.add('read');
+                this.remove();
+              }
+            });
+          });
+        }
+      });
+    }
+
+    attachMarkReadListeners();
+
+    // Auto-refresh every 15 seconds
+    function refreshComplaints() {
+      fetch('/admin/complaint_notifications/fetch')
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById('complaints-container');
+          container.innerHTML = '';
+          data.forEach(c => {
+            const div = document.createElement('div');
+            div.className = `notification ${c.read ? 'read' : ''}`;
+            div.id = `complaint-${c.id}`;
+            div.innerHTML = `<span>${c.user_name}: ${c.description} (${c.status})</span>`;
+            if(!c.read){
+              const btn = document.createElement('button');
+              btn.className = 'mark-read';
+              btn.setAttribute('data-id', c.id);
+              btn.textContent = 'Mark as Read';
+              div.appendChild(btn);
+            }
+            container.appendChild(div);
+          });
+          attachMarkReadListeners();
+        });
+    }
+
+    setInterval(refreshComplaints, 15000);
+  </script>
+</body>
+</html>

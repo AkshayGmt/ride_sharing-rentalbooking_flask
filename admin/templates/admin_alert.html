@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Alerts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<div class="container mx-auto py-8">
+  <h2 class="text-3xl font-bold mb-6 text-gray-800">⚠️ Admin Alerts</h2>
+
+  <!-- Alerts Table -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h3 class="text-xl font-semibold mb-4">Real-Time Alerts</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full border text-sm" id="alertsTable">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-3 py-2 border">Message</th>
+            <th class="px-3 py-2 border">Type</th>
+            <th class="px-3 py-2 border">Severity</th>
+            <th class="px-3 py-2 border">Created At</th>
+            <th class="px-3 py-2 border">Status</th>
+            <th class="px-3 py-2 border">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in alerts %}
+          <tr class="hover:bg-gray-50 {% if a.resolved %}opacity-50{% endif %}" id="alert-{{ a.id }}">
+            <td class="px-3 py-2 border">{{ a.message }}</td>
+            <td class="px-3 py-2 border">{{ a.alert_type }}</td>
+            <td class="px-3 py-2 border">
+              <span class="px-2 py-1 rounded text-white
+                {% if a.severity == 'high' %} bg-red-600
+                {% elif a.severity == 'medium' %} bg-yellow-500
+                {% else %} bg-green-600 {% endif %}">
+                {{ a.severity|capitalize }}
+              </span>
+            </td>
+            <td class="px-3 py-2 border">{{ a.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td class="px-3 py-2 border">
+              {% if a.resolved %}
+                ✅ Resolved
+              {% else %}
+                ❌ Active
+              {% endif %}
+            </td>
+            <td class="px-3 py-2 border">
+              {% if not a.resolved %}
+              <button onclick="resolveAlert('{{ a.id }}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">
+                Resolve
+              </button>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-gray-500">No alerts yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const socket = io();
+
+// Listen for new alerts
+socket.on("new_admin_alert", function(data){
+  const row = `<tr class="hover:bg-gray-50" id="alert-${data.id}">
+    <td class="px-3 py-2 border">${data.message}</td>
+    <td class="px-3 py-2 border">${data.type}</td>
+    <td class="px-3 py-2 border"><span class="px-2 py-1 rounded text-white ${
+      data.severity === "high" ? "bg-red-600" : data.severity === "medium" ? "bg-yellow-500" : "bg-green-600"
+    }">${data.severity}</span></td>
+    <td class="px-3 py-2 border">${data.created_at}</td>
+    <td class="px-3 py-2 border">❌ Active</td>
+    <td class="px-3 py-2 border"><button onclick="resolveAlert('${data.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Resolve</button></td>
+  </tr>`;
+  document.querySelector("#alertsTable tbody").insertAdjacentHTML("afterbegin", row);
+});
+
+// Listen for alert resolution
+socket.on("alert_resolved", function(data){
+  const row = document.getElementById("alert-" + data.id);
+  if(row){
+    row.classList.add("opacity-50");
+    row.querySelector("td:nth-child(5)").innerText = "✅ Resolved";
+    row.querySelector("td:nth-child(6)").innerHTML = "";
+  }
+});
+
+// Resolve alert
+async function resolveAlert(id){
+  const response = await fetch(`/admin/notifications/admin-alerts/resolve/${id}`, {
+    method: "POST"
+  });
+  const result = await response.json();
+  if(result.success){
+    alert("Alert resolved successfully!");
+  }
+}
+</script>
+
+</body>
+</html>

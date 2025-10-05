@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - User Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar {
+            background: #343a40;
+            color: white;
+            width: 220px;
+            height: 100vh;
+            float: left;
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+        }
+        .sidebar h4 {
+            color: #ffc107;
+            margin-bottom: 20px;
+        }
+        .sidebar a {
+            display: block;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #495057;
+            border-radius: 5px;
+            color: white;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        .sidebar a:hover {
+            background: #ffc107;
+            color: #343a40;
+        }
+        .content {
+            margin-left: 240px;
+            padding: 30px;
+        }
+        .option-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .option-card:hover {
+            background: #ffc107;
+            color: #343a40;
+            cursor: pointer;
+        }
+        .option-card a {
+            text-decoration: none;
+            color: inherit;
+            font-weight: bold;
+            font-size: 16px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+              <div class="sidebar"> 
+        <h4>User Management</h4>
+        <table class="table table-borderless text-white">
+            <tr><td><a href="/admin/user_management/manage">Manage Passengers & Renters</a></td></tr>
+            <tr><td><a href="/admin/user_management/suspend">Suspend / Deactivate Users</a></td></tr>
+            <tr><td><a href="/admin/user_management/activity">User Activity</a></td></tr>
+            <tr><td><a href="/admin/user_management/audit">Security & Audit</a></td></tr>
+        </table>                      
+        <hr>
+        <a href="/admin/dashboard">⬅ Back to Dashboard</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <h2>User Management</h2>
+        <p>Select a function from the left menu to manage users.</p>
+
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="option-card">
+                    <a href="{{ url_for('admin.manage_users') }}">🧑‍🤝‍🧑 Manage Passengers & Renters</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="option-card">
+                    <a href="{{ url_for('admin.suspend_users') }}">🚫 Suspend / Deactivate Users</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="option-card">
+                    {% for u in user %} <a href="{{ url_for('admin.user_activity') }}">🧑‍🤝‍🧑 User Activity</a>{% endfor %} </div>
+            </div>
+            <div class="col-md-4">
+                <div class="option-card">
+                    <a href="{{ url_for('admin.audit_logs') }}">🔒 Security & Audit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

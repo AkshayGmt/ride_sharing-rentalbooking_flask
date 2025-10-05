@@ -1,0 +1,123 @@
+<div class="container-fluid mt-4">
+
+  <div class="card mb-4">
+    <div class="card-header"><strong>Pricing Management Interface</strong></div>
+    <div class="card-body">
+      <table class="table table-hover table-bordered" id="fareRulesTable">
+        <thead>
+          <tr>
+            <th>City Tier</th>
+            <th>Vehicle Type</th>
+            <th>Ride Type</th>
+            <th>Base Fare (₹)</th>
+            <th>Per KM (₹)</th>
+            <th>Per Minute (₹)</th>
+            <th>Surge %</th>
+            <th>Commission %</th>
+            <th>Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rule in fare_rules %}
+          <tr data-id="{{ rule.id }}">
+            <td><input class="form-control form-control-sm city_tier" value="{{ rule.city_tier }}"></td>
+            <td><input class="form-control form-control-sm vehicle_type" value="{{ rule.vehicle_type }}"></td>
+            <td><input class="form-control form-control-sm ride_type" value="{{ rule.ride_type }}"></td>
+            <td><input type="number" class="form-control form-control-sm base_fare" value="{{ rule.base_fare }}"></td>
+            <td><input type="number" class="form-control form-control-sm per_km" value="{{ rule.per_km }}"></td>
+            <td><input type="number" class="form-control form-control-sm per_minute" value="{{ rule.per_minute }}"></td>
+            <td><input type="number" class="form-control form-control-sm surge_percentage" value="{{ rule.surge_percentage }}"></td>
+            <td><input type="number" class="form-control form-control-sm platform_commission" value="{{ rule.platform_commission }}"></td>
+            <td><input type="checkbox" class="active_rule" {% if rule.active %}checked{% endif %}></td>
+            <td>
+              <button class="btn btn-sm btn-success save-rule">Save</button>
+              <button class="btn btn-sm btn-warning toggle-rule">Toggle</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <form action="{{ url_for('fare.import_fare_rules') }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <input type="file" name="csv_file" accept=".csv" required>
+        <button class="btn btn-primary btn-sm mt-2">Upload CSV</button>
+      </form>
+
+      <!-- Fare Preview -->
+      <div class="mt-3">
+        <h6>Fare Preview:</h6>
+        <input type="text" id="preview_city" placeholder="City Tier">
+        <input type="text" id="preview_vehicle" placeholder="Vehicle Type">
+        <input type="text" id="preview_ride" placeholder="Ride Type">
+        <input type="number" id="preview_base" placeholder="Base Fare">
+        <input type="number" id="preview_surge" placeholder="Surge %">
+        <button id="preview_btn" class="btn btn-info btn-sm">Preview Fare</button>
+        <p id="fare_result"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Save inline
+document.querySelectorAll('.save-rule').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    let row = btn.closest('tr');
+    let id = row.dataset.id;
+    fetch(`/admin/fare/edit/${id}`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        city_tier: row.querySelector('.city_tier').value,
+        vehicle_type: row.querySelector('.vehicle_type').value,
+        ride_type: row.querySelector('.ride_type').value,
+        base_fare: parseFloat(row.querySelector('.base_fare').value),
+        per_km: parseFloat(row.querySelector('.per_km').value),
+        per_minute: parseFloat(row.querySelector('.per_minute').value),
+        surge_percentage: parseFloat(row.querySelector('.surge_percentage').value),
+        platform_commission: parseFloat(row.querySelector('.platform_commission').value),
+        active: row.querySelector('.active_rule').checked
+      })
+    }).then(r=>r.json()).then(d=>{ if(d.success) alert('Rule updated'); });
+  });
+});
+
+// Toggle active
+document.querySelectorAll('.toggle-rule').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    let row = btn.closest('tr');
+    let id = row.dataset.id;
+    fetch(`/admin/fare/toggle/${id}`, {method:'POST'})
+      .then(r=>r.json())
+      .then(d=>{
+        row.querySelector('.active_rule').checked = d.active;
+      });
+  });
+});
+
+// Fare Preview
+document.getElementById('preview_btn').addEventListener('click', ()=>{
+  let city = document.getElementById('preview_city').value;
+  let vehicle = document.getElementById('preview_vehicle').value;
+  let ride = document.getElementById('preview_ride').value;
+  let base = parseFloat(document.getElementById('preview_base').value || 0);
+  let surge = parseFloat(document.getElementById('preview_surge').value || 0);
+
+  let row = [...document.querySelectorAll('#fareRulesTable tbody tr')].find(r=>
+    r.querySelector('.city_tier').value===city &&
+    r.querySelector('.vehicle_type').value===vehicle &&
+    r.querySelector('.ride_type').value===ride
+  );
+
+  if(!row){ alert('Rule not found'); return; }
+
+  let commission = parseFloat(row.querySelector('.platform_commission').value);
+
+  let fare = base + base*(commission/100) + base*(surge/100);
+  document.getElementById('fare_result').innerText = `Estimated Fare: ₹${fare.toFixed(2)}`;
+});
+</script>
+

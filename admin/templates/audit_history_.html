@@ -1,0 +1,31 @@
+<div class="card mt-3">
+  <div class="card-header">
+    <h6 class="mb-0">Audit Trail</h6>
+  </div>
+  <div class="card-body">
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Action</th>
+          <th>Previous Fee</th>
+          <th>New Fee</th>
+          <th>Admin</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in c.audit_trail %}
+          <tr>
+            <td>{{ log.timestamp.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td>{{ log.action }}</td>
+            <td>₹{{ log.previous_fee }}</td>
+            <td>₹{{ log.new_fee }}</td>
+            <td>{{ log.admin_id.name if log.admin_id else "System" }}</td>
+            <td>{{ log.notes }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Admin Monitor</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body{font-family:Inter,system-ui;}
+    #map{height:600px; border-radius:8px;}
+    .sidebar{max-height:600px; overflow:auto;}
+    .searching { animation: pulse 1s infinite; color:#0d6efd; }
+    @keyframes pulse { 0%{opacity:.3} 50%{opacity:1} 100%{opacity:.3} }
+  </style>
+</head>
+<body class="p-3">
+  <div class="container-fluid">
+    <div class="row g-3">
+      <div class="col-lg-3 sidebar">
+        <h5>Ongoing Rides</h5>
+        <div class="mb-2">
+          <input id="filter-passenger" class="form-control form-control-sm" placeholder="Passenger">
+          <select id="filter-vehicle" class="form-select form-select-sm mt-2"><option value="">All Vehicles</option><option>Car</option><option>Bike</option><option>Truck</option></select>
+        </div>
+        <div id="rides-list" class="list-group"></div>
+      </div>
+
+      <div class="col-lg-6">
+        <div id="map"></div>
+      </div>
+
+      <div class="col-lg-3">
+        <h6>Details</h6>
+        <div id="ride-details" class="card p-2">Select a ride to see details</div>
+        <hr>
+        <h6>Cargo Bids (selected ride)</h6>
+        <div id="bids-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const socketAdmin = io('/admin');
+    const socketDrivers = io('/drivers'); // admin page may also connect to drivers namespace for testing
+    const markers = {}; // driver markers
+    const rideMarkers = {};
+
+    // init Map
+    const map = L.map('map').setView([20.5937,78.9629],5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    // fetch initial list of ongoing rides (optionally create an API)
+    fetch('/admin/api/ongoing_rides').then(r=>r.json()).then(data=>{
+      data.rides.forEach(renderRideListItem);
+      data.drivers.forEach(updateDriverMarker);
+    });
+
+    // Socket handlers
+    socketAdmin.on('connect', ()=>console.log('admin socket connected'));
+    socketAdmin.on('new_ride', payload => {
+      renderRideListItem(payload.ride);
+    });
+    socketAdmin.on('ride_assigned', payload => {
+      // update ride list and markers
+      updateRideAssigned(payload.ride_id, payload.driver_id, payload.driver_name);
+    });
+    socketAdmin.on('dispatch_started', payload=>{
+      // show searching animation in UI
+      const ride = payload.ride;
+      const el = document.querySelector(`[data-ride="${ride._id.$oid || ride._id}"]`);
+      if(el) el.querySelector('.status').innerHTML = '<span class="searching">Searching...</span>';
+    });
+
+    socketAdmin.on('cargo_created', payload=>{
+      renderRideListItem(payload.ride);
+    });
+
+    socketAdmin.on('new_bid', payload=>{
+      // if selected ride matches, show new bid
+      const current = document.querySelector('#ride-details').dataset.rideid;
+      if(current == payload.ride_id) addBidToList(payload.bid);
+    });
+
+    // Utility: render ride in left list
+    function renderRideListItem(rideDoc) {
+      // rideDoc may be mongo object or dict
+      const id = rideDoc._id ? (rideDoc._id.$oid || rideDoc._id) : rideDoc.id || rideDoc.ride_id;
+      const passenger = rideDoc.passenger_name || rideDoc.passenger_id || '—';
+      const vehicle = rideDoc.vehicle_type || '—';
+      const status = rideDoc.status || 'searching';
+      const fare = rideDoc.fare_estimate || '—';
+      let el = document.querySelector(`[data-ride="${id}"]`);
+      if(el) return; // already exists (we update in other events)
+      el = document.createElement('a');
+      el.className = 'list-group-item list-group-item-action';
+      el.dataset.ride = id;
+      el.innerHTML = `<div class="d-flex w-100 justify-content-between">
+        <h6 class="mb-1 small">${passenger}</h6>
+        <small class="status">${status}</small>
+      </div><p class="mb-1 small">${vehicle} • ₹${fare}</p>`;
+      el.onclick = ()=>selectRide(id, rideDoc);
+      document.getElementById('rides-list').prepend(el); // newest on top
+    }
+
+    function selectRide(rideId, rideDoc) {
+      // show details
+      const r = rideDoc; // ideally fetch full ride details via API
+      const html = `<div><strong>${r.passenger_name}</strong><div>Ride: ${r.ride_id || r._id || rideId}</div>
+      <div>Pickup: ${r.pickup_lat}, ${r.pickup_lng}</div><div>Status: <span class="badge bg-info">${r.status}</span></div>
+      <div class="mt-2"><button class="btn btn-sm btn-warning" onclick="adminReassign('${rideId}')">Reassign</button>
+      <button class="btn btn-sm btn-danger" onclick="adminCancel('${rideId}')">Cancel</button></div></div>`;
+      const d = document.getElementById('ride-details');
+      d.innerHTML = html;
+      d.dataset.rideid = rideId;
+
+      // populate bids if cargo
+      if(r.ride_type === 'cargo') {
+        // fetch ride details for bids
+        fetch(`/admin/api/ride/${rideId}/bids`).then(res=>res.json()).then(js=>{
+          document.getElementById('bids-list').innerHTML = '';
+          js.bids.forEach(addBidToList);
+        });
+      } else {
+        document.getElementById('bids-list').innerHTML = '';
+      }
+    }
+
+    function addBidToList(bid) {
+      const node = document.createElement('div');
+      node.className = 'card p-2 mb-2';
+      node.innerHTML = `<div><strong>${bid.driver_name}</strong> • ₹${bid.amount} • ETA: ${bid.eta}
+        <button class="btn btn-sm btn-success float-end" onclick="selectBid('${bid.driver_id}')">Select</button></div>`;
+      document.getElementById('bids-list').prepend(node);
+    }
+
+    function selectBid(driverId) {
+      const rideId = document.getElementById('ride-details').dataset.rideid;
+      fetch('/admin/rides/cargo/select_bid', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:`ride_id=${rideId}&driver_id=${driverId}`})
+      .then(r=>r.json()).then(res=>{ alert('Bid selected'); });
+    }
+
+    // placeholder admin actions
+    function adminReassign(rideId) { alert('Open assign modal for '+rideId); }
+    function adminCancel(rideId) { fetch(`/admin/api/ride/${rideId}/cancel`, {method:'POST'}).then(()=>location.reload()); }
+
+    // driver marker updates (could be from server push)
+    function updateDriverMarker(d) {
+      const id = d._id ? (d._id.$oid || d._id) : d.id;
+      const lat = d.latitude; const lng = d.longitude;
+      if(!lat || !lng) return;
+      if(markers[id]) markers[id].setLatLng([lat,lng]);
+      else markers[id] = L.marker([lat,lng]).addTo(map).bindPopup(`${d.name} • ${d.vehicle_type}`);
+    }
+  </script>
+  <div id="map" style="height:500px;"></div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  var map = L.map('map').setView([19.0760, 72.8777], 12); // Mumbai default
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  let driverMarkers = {};
+  let rideRoutes = {};
+
+  function updateDrivers(drivers) {
+    drivers.forEach(d => {
+      if (!driverMarkers[d.id]) {
+        driverMarkers[d.id] = L.marker([d.lat, d.lng]).addTo(map)
+          .bindPopup(`Driver: ${d.name}`);
+      } else {
+        driverMarkers[d.id].setLatLng([d.lat, d.lng]);
+      }
+    });
+  }
+
+  function showRoute(ride) {
+    if (rideRoutes[ride.id]) {
+      map.removeLayer(rideRoutes[ride.id]);
+    }
+    rideRoutes[ride.id] = L.polyline(ride.route_coords, {color: 'blue'}).addTo(map);
+    map.fitBounds(rideRoutes[ride.id].getBounds());
+  }
+
+  // Example: socket updates
+  socket.on("driver_update", data => updateDrivers(data));
+  socket.on("ride_update", data => showRoute(data));
+</script>
+
+</body>
+</html>

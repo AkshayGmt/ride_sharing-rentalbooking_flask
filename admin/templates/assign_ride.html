@@ -1,0 +1,125 @@
+<div class="container mt-4">
+  <h2 class="mb-3">Assign / Reassign Drivers</h2>
+
+  <table class="table table-bordered table-hover">
+    <thead class="table-dark">
+      <tr>
+        <th>Ride ID</th>
+        <th>Passenger</th>
+        <th>Pickup → Drop</th>
+        <th>Status</th>
+        <th>Current Driver</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ride in rides %}
+      <tr>
+        <td>{{ ride.id }}</td>
+        <td>{{ ride.passenger.name }}</td>
+        <td>{{ ride.pickup }} → {{ ride.drop }}</td>
+        <td><span class="badge bg-info">{{ ride.status }}</span></td>
+        <td>
+          {% if ride.driver %}
+            {{ ride.driver.name }}
+          {% else %}
+            <em>Unassigned</em>
+          {% endif %}
+        </td>
+        <tr id="ride-{{ ride.id }}">
+  <td>{{ ride.id }}</td>
+  <td>{{ ride.passenger.name }}</td>
+  <td>{{ ride.pickup }} → {{ ride.drop }}</td>
+  <td class="ride-status"><span class="badge bg-info">{{ ride.status }}</span></td>
+  <td class="ride-driver">{% if ride.driver %}{{ ride.driver.name }}{% else %}<em>Unassigned</em>{% endif %}</td>
+  <td> ... </td>
+</tr>
+
+        <td>
+          <!-- Assign / Reassign Modal Trigger -->
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+            data-bs-target="#assignModal{{ ride.id }}">
+            Assign/Reassign
+          </button>
+        </td>
+      </tr>
+
+      <!-- Modal -->
+     <div class="card p-3 mb-3 shadow-sm">
+  <form method="get" action="{{ url_for('admin_assign.rides_waiting') }}" class="row g-2">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="col-md-2">
+      <input type="text" class="form-control" name="ride_id" placeholder="Ride ID">
+    </div>
+    <div class="col-md-2">
+      <input type="text" class="form-control" name="passenger" placeholder="Passenger Name">
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" name="vehicle_type">
+        <option value="">Vehicle Type</option>
+        <option value="car">Car</option>
+        <option value="bike">Bike</option>
+        <option value="van">Van</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <select class="form-select" name="status">
+        <option value="">Status</option>
+        <option value="waiting_driver">Waiting</option>
+        <option value="no_driver">No Driver</option>
+        <option value="reassign_pending">Reassign Pending</option>
+        <option value="driver_assigned">Assigned</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-primary w-100">Filter</button>
+    </div>
+    <div class="col-md-2">
+      <a href="{{ url_for('admin_assign.rides_waiting') }}" class="btn btn-secondary w-100">Reset</a>
+    </div>
+  </form>
+</div>
+ {% endfor %}
+    </tbody>
+  </table>
+</div>
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script>
+  const socket = io("/admin");
+
+  socket.on("ride_update", (data) => {
+    console.log("Ride update:", data);
+
+    // Find row by Ride ID
+    const row = document.querySelector(`#ride-${data.ride_id}`);
+    if (row) {
+      row.querySelector(".ride-status").innerHTML = 
+        `<span class="badge bg-info">${data.status}</span>`;
+      row.querySelector(".ride-driver").innerText = data.driver || "Unassigned";
+    } else {
+      // Optionally reload or append new ride row dynamically
+      location.reload();
+    }
+  });
+</script>
+<div id="map" style="height:600px;"></div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  const map = L.map("map").setView([20.5937, 78.9629], 5); // India default
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "© OpenStreetMap"
+  }).addTo(map);
+
+  const markers = {};
+
+  const socket = io("/admin");
+  socket.on("ride_location", (data) => {
+    if (markers[data.ride_id]) {
+      markers[data.ride_id].setLatLng([data.lat, data.lng]);
+    } else {
+      markers[data.ride_id] = L.marker([data.lat, data.lng]).addTo(map)
+        .bindPopup(`<b>Ride ${data.ride_id}</b><br>Status: ${data.status}<br>Driver: ${data.driver || "Unassigned"}`);
+    }
+  });
+</script>

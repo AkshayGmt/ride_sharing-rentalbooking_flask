@@ -1,0 +1,73 @@
+  <div class="sidebar">
+        <h4>Driver Management</h4>
+        <table class="table table-borderless text-white">
+            <tr><td><a href="/admin/driver_management/approve">Approve / Reject Registrations</a></td></tr>
+            <tr><td><a href="/admin/driver_management/documents">Verify Documents</a></td></tr>
+            <tr><td><a href="/admin/driver_management/activity">Track Activity & Location</a></td></tr>
+            <tr><td><a href="/admin/driver_management/controls">Additional Controls</a></td></tr>
+            <tr><td><a href="/admin/driver_management/time_tagging">Time-of-Day Tagging</a></td></tr>
+            <tr><td><a href="/admin/driver_management/exceptions">Edge Cases & Exceptions</a></td></tr>
+            <tr><td><a href="/admin/driver_management/subscription">Driver Subscription</a></td></tr>
+        </table>
+        <hr>
+        <a href="/admin/dashboard">⬅ Back to Dashboard</a>
+    </div>
+
+<h2>Verify Documents - {{ driver.name }}</h2>
+
+<table class="table table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>Document</th>
+      <th>File</th>
+      <th>Status</th>
+      <th>Notes</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for doc_type, file_url, status, notes in [
+        ('license', documents.license_doc, documents.license_status, documents.license_notes),
+        ('rc', documents.rc_doc, documents.rc_status, documents.rc_notes),
+        ('insurance', documents.insurance_doc, documents.insurance_status, documents.insurance_notes),
+        ('id_proof', documents.id_proof_doc, documents.id_proof_status, documents.id_proof_notes)
+    ] %}
+    <tr>
+      <td>{{ doc_type|capitalize }}</td>
+      <td>
+        {% if file_url %}
+          <a href="{{ file_url }}" target="_blank">View</a>
+        {% else %}
+          <span class="text-muted">Not uploaded</span>
+        {% endif %}
+      </td>
+      <td>
+        <span class="badge 
+          {% if status == 'Verified' %} bg-success 
+          {% elif status == 'Rejected' %} bg-danger 
+          {% elif status == 'Resubmit' %} bg-warning text-dark 
+          {% else %} bg-secondary {% endif %}">
+          {{ status }}
+        </span>
+      </td>
+      <td>{{ notes or '-' }}</td>
+      <td>
+        <form method="post" class="d-flex">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <input type="hidden" name="doc_type" value="{{ doc_type }}">
+          <select name="action" class="form-select form-select-sm me-2">
+            <option value="Verified">Verify</option>
+            <option value="Rejected">Reject</option>
+            <option value="Resubmit">Request Resubmission</option>
+          </select>
+          <input type="text" name="notes" placeholder="Notes (optional)" class="form-control form-control-sm me-2">
+          <button type="submit" class="btn btn-primary btn-sm">Update</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="{{ url_for('admin.driver_registrations') }}" class="btn btn-secondary">Back</a>

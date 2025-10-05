@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Driver Time-of-Day & Incidents</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f4f6f9; font-family: Arial, sans-serif; padding: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 3px 6px rgba(0,0,0,0.1);}
+        .status-ok { color: green; font-weight: bold; }
+        .status-issue { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>🕒 Time-of-Day Ride Tagging</h2>
+    <div class="card">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Ride ID</th>
+                    <th>Driver</th>
+                    <th>Pickup Time</th>
+                    <th>Time-of-Day</th>
+                    <th>Passenger</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ride in rides %}
+                <tr>
+                    <td>{{ ride._id }}</td>
+                    <td>{{ ride.driver_name }}</td>
+                    <td>{{ ride.pickup_time.strftime("%Y-%m-%d %H:%M") }}</td>
+                    <td>{{ ride.time_of_day }}</td>
+                    <td>{{ ride.passenger_name }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2>🚨 Driver No-Show / Late Incidents</h2>
+    <div class="card">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Incident ID</th>
+                    <th>Driver</th>
+                    <th>Ride ID</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Action Taken</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for incident in incidents %}
+                <tr>
+                    <td>{{ incident._id }}</td>
+                    <td>{{ incident.driver_name }}</td>
+                    <td>{{ incident.ride_id }}</td>
+                    <td>{{ incident.date.strftime("%Y-%m-%d %H:%M") }}</td>
+                    <td>
+                        {% if incident.status == "No-Show" %}
+                            <span class="status-issue">No-Show</span>
+                        {% elif incident.status == "Late" %}
+                            <span class="status-issue">Late</span>
+                        {% else %}
+                            <span class="status-ok">{{ incident.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if incident.status in ["No-Show", "Late"] %}
+                            Ride cancelled / Full refund + Promo issued
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

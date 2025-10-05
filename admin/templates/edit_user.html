@@ -1,0 +1,18 @@
+<h2>Edit User</h2>
+<form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label>Name:</label>
+    <input type="text" name="name" class="form-control" value="{{ user.name }}">
+    <label>Email:</label>
+    <input type="email" name="email" class="form-control" value="{{ user.email }}">
+    <label>Phone:</label>
+    <input type="text" name="phone" class="form-control" value="{{ user.phone }}">
+    <label>Status:</label>
+    <select name="status" class="form-select">
+        <option value="Active" {% if user.status=="Active" %}selected{% endif %}>Active</option>
+        <option value="Suspended" {% if user.status=="Suspended" %}selected{% endif %}>Suspended</option>
+    </select>
+    <button type="submit" class="btn btn-success mt-3">Save Changes</button>
+    <a href="{{ url_for('admin.manage_users') }}" class="btn btn-secondary mt-3">Cancel</a>
+</form>

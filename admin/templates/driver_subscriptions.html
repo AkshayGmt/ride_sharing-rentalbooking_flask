@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Driver Subscriptions</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f4f6f9; font-family: Arial, sans-serif; }
+    .content { padding: 30px; }
+    .table thead { background: #2c3e50; color: white; }
+    .status-active { color: green; font-weight: bold; }
+    .status-expired { color: red; font-weight: bold; }
+    .card { padding: 20px; border-radius: 10px; margin-bottom: 20px; background: #fff; box-shadow: 0 3px 6px rgba(0,0,0,0.1);}
+  </style>
+</head>
+<body>
+
+<div class="content">
+  <h2>💳 Driver Subscriptions</h2>
+  <p>Manage driver subscription plans and driver subscriptions.</p>
+
+  <!-- Create New Subscription Plan -->
+  <div class="card">
+    <h5>Create New Subscription Plan</h5>
+    <form method="POST">
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Plan Name</label>
+          <input type="text" name="plan_name" class="form-control" placeholder="Basic, Premium, etc." required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Duration</label>
+          <select name="duration" class="form-select" required>
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+            <option value="Yearly">Yearly</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Price (₹)</label>
+          <input type="number" step="0.01" name="price" class="form-control" placeholder="e.g., 500" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-success">Create Plan</button>
+    </form>
+  </div>
+
+<div class="card">
+  <h3>Current Subscription</h3>
+  {% if subscription %}
+    <p>Type: {{ subscription.plan.plan_name }}</p>
+    <p>Expires on: {{ subscription.end_date.strftime('%Y-%m-%d') }}</p>
+    {% if subscription.plan.plan_name == 'Premium' %}
+      <p>Active hours today: {{ subscription.active_hours_today // 60 }}h {{ subscription.active_hours_today % 60 }}m</p>
+    {% else %}
+      <p>Daily earnings today: ₹{{ subscription.daily_earnings_today }}</p>
+    {% endif %}
+  {% else %}
+    <p>No active subscription found.</p>
+  {% endif %}
+</div>
+
+
+  <!-- Existing Plans -->
+  <div class="card">
+    <h5>Existing Subscription Plans</h5>
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Plan Name</th>
+          <th>Duration</th>
+          <th>Price (₹)</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for plan in plans %}
+        <tr>
+          <td>{{ plan.plan_name }}</td>
+          <td>{{ plan.duration }}</td>
+          <td>{{ plan.price }}</td>
+          <td>
+            <a href="{{ url_for('admin.edit_plan', plan_id=plan._id) }}" class="btn btn-sm btn-primary">Edit</a>
+            <a href="{{ url_for('admin.delete_plan', plan_id=plan._id) }}" class="btn btn-sm btn-danger">Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Active Driver Subscriptions -->
+  <div class="card">
+    <h5>Active Driver Subscriptions</h5>
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Driver Name</th>
+          <th>Plan</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sub in subscriptions %}
+        <tr>
+          <td>{{ sub.driver_name }}</td>
+          <td>{{ sub.plan_name }}</td>
+          <td>{{ sub.start_date }}</td>
+          <td>{{ sub.end_date }}</td>
+          <td>
+            {% if sub.status == "Active" %}
+              <span class="status-active">Active</span>
+            {% else %}
+              <span class="status-expired">Expired</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('admin.renew_subscription', sub_id=sub._id) }}" class="btn btn-sm btn-success">Renew</a>
+            <a href="{{ url_for('admin.cancel_subscription', sub_id=sub._id) }}" class="btn btn-sm btn-danger">Cancel</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+</body>
+</html>

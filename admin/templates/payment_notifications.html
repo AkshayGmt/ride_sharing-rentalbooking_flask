@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Notifications</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f6f8; }
+    h1 { color: #1e293b; }
+    .filters { margin-bottom: 20px; }
+    select, button { padding: 6px 10px; margin-right: 10px; }
+
+    .notification {
+      background: #fff;
+      padding: 15px;
+      margin: 10px 0;
+      border-left: 6px solid;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: opacity 0.3s;
+    }
+    .notification.success { border-color: #2ecc71; }
+    .notification.refund { border-color: #3498db; }
+    .notification.failed { border-color: #e74c3c; }
+    .notification.pending { border-color: #f1c40f; }
+
+    .notification.read { opacity: 0.6; }
+    button.mark-read { padding: 4px 8px; font-size: 12px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>💳 Payment Notifications</h1>
+
+  <!-- Filters -->
+  <div class="filters">
+    <form method="get">
+      <label>Filter by type:</label>
+      <select name="type">
+        <option value="">All</option>
+        <option value="success" {% if selected_type=='success' %}selected{% endif %}>Success</option>
+        <option value="refund" {% if selected_type=='refund' %}selected{% endif %}>Refund</option>
+        <option value="failed" {% if selected_type=='failed' %}selected{% endif %}>Failed</option>
+        <option value="pending" {% if selected_type=='pending' %}selected{% endif %}>Pending</option>
+      </select>
+
+      <label>Sort by date:</label>
+      <select name="sort">
+        <option value="desc" {% if sort_order=='desc' %}selected{% endif %}>Newest first</option>
+        <option value="asc" {% if sort_order=='asc' %}selected{% endif %}>Oldest first</option>
+      </select>
+      <button type="submit">Apply</button>
+    </form>
+  </div>
+
+ <div id="notifications-container">
+  {% for n in notifications %}
+    <div class="notification {{ n.type }} {% if n.read %}read{% endif %}" id="notif-{{ n.id }}">
+      <span>{{ n.message }}</span>
+      {% if not n.read %}
+      <button class="mark-read" data-id="{{ n.id }}">Mark as Read</button>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+<script>
+  // Function to attach click listeners to Mark as Read buttons
+  function attachMarkReadListeners() {
+    document.querySelectorAll('.mark-read').forEach(btn => {
+      if (!btn.dataset.attached) {   // Avoid multiple listeners
+        btn.dataset.attached = true;
+        btn.addEventListener('click', function() {
+          const paymentId = this.getAttribute('data-id');
+          fetch(`/admin/payment_notifications/mark_read_ajax/${paymentId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          })
+          .then(response => response.json())
+          .then(data => {
+            if(data.success){
+              const notifDiv = document.getElementById(`notif-${paymentId}`);
+              notifDiv.classList.add('read');
+              this.remove();
+            } else {
+              alert("Error marking as read: " + data.error);
+            }
+          })
+          .catch(err => alert("AJAX error: " + err));
+        });
+      }
+    });
+  }
+
+  attachMarkReadListeners(); // Initial attach
+
+  // Auto-refresh function
+  function refreshNotifications() {
+    fetch('/admin/payment_notifications/fetch')
+      .then(response => response.json())
+      .then(data => {
+        const container = document.getElementById('notifications-container');
+        container.innerHTML = ''; // clear current notifications
+
+        data.forEach(n => {
+          const div = document.createElement('div');
+          div.className = `notification ${n.type} ${n.read ? 'read' : ''}`;
+          div.id = `notif-${n.id}`;
+          div.innerHTML = `<span>${n.message}</span>`;
+
+          if(!n.read){
+            const btn = document.createElement('button');
+            btn.className = 'mark-read';
+            btn.setAttribute('data-id', n.id);
+            btn.textContent = 'Mark as Read';
+            div.appendChild(btn);
+          }
+
+          container.appendChild(div);
+        });
+
+        attachMarkReadListeners(); // attach listeners to new buttons
+      })
+      .catch(err => console.error("Error fetching notifications:", err));
+  }
+
+  // Refresh every 10 seconds
+  setInterval(refreshNotifications, 10000);
+</script>

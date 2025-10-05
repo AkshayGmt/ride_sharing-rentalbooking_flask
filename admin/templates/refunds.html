@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Refund Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto py-8">
+    <h2 class="text-3xl font-bold mb-6 text-gray-800">Refund Management</h2>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-4">
+          {% for category, message in messages %}
+            <div class="p-3 rounded mb-2 
+                {% if category == 'success' %}bg-green-100 text-green-800
+                {% elif category == 'danger' %}bg-red-100 text-red-800
+                {% else %}bg-blue-100 text-blue-800{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Table -->
+    <div class="overflow-x-auto bg-white shadow-lg rounded-lg">
+      <table class="min-w-full border-collapse">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-2 border text-left">Booking ID</th>
+            <th class="px-4 py-2 border text-left">Passenger</th>
+            <th class="px-4 py-2 border text-left">Driver</th>
+            <th class="px-4 py-2 border text-left">Requested</th>
+            <th class="px-4 py-2 border text-left">Approved</th>
+            <th class="px-4 py-2 border text-left">Reason</th>
+            <th class="px-4 py-2 border text-left">Status</th>
+            <th class="px-4 py-2 border text-left">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for refund in refunds %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-2 border">{{ refund.booking_id }}</td>
+            <td class="px-4 py-2 border">{{ refund.passenger_id }}</td>
+            <td class="px-4 py-2 border">{{ refund.driver_id or 'N/A' }}</td>
+            <td class="px-4 py-2 border">₹{{ "%.2f"|format(refund.amount_requested) }}</td>
+            <td class="px-4 py-2 border">₹{{ "%.2f"|format(refund.amount_approved) }}</td>
+            <td class="px-4 py-2 border">{{ refund.reason }}</td>
+            <td class="px-4 py-2 border font-semibold">
+              {% if refund.status == 'requested' %}
+                <span class="text-yellow-600">Requested</span>
+              {% elif refund.status == 'approved' %}
+                <span class="text-green-600">Approved</span>
+              {% elif refund.status == 'partial' %}
+                <span class="text-blue-600">Partial</span>
+              {% elif refund.status == 'processed' %}
+                <span class="text-purple-600">Processed</span>
+              {% else %}
+                <span class="text-red-600">Rejected</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 border space-y-2">
+              {% if refund.status == 'requested' %}
+                <!-- Approve -->
+                <form action="{{ url_for('refund.approve_refund', refund_id=refund.id) }}" method="post">
+                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                  <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">Approve Full</button>
+                </form>
+                <!-- Partial -->
+                <form action="{{ url_for('refund.partial_refund', refund_id=refund.id) }}" method="post" class="flex space-x-1">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                  <input type="number" step="0.01" name="amount" placeholder="Amount" class="border px-2 py-1 rounded w-24">
+                  <input type="text" name="note" placeholder="Note" class="border px-2 py-1 rounded">
+                  <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">Partial</button>
+                </form>
+                <!-- Reject -->
+                <form action="{{ url_for('refund.reject_refund', refund_id=refund.id) }}" method="post">
+                  <input type="text" name="note" placeholder="Reason" class="border px-2 py-1 rounded">
+                  <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Reject</button>
+                </form>
+              {% elif refund.status in ['approved','partial'] %}
+                <form action="{{ url_for('refund.process_refund', refund_id=refund.id) }}" method="post">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                  <button class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded">Mark Processed</button>
+                </form>
+              {% else %}
+                <span class="text-gray-500">No Action</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

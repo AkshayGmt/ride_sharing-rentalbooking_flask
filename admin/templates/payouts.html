@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Driver Payout Requests</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto py-8">
+    <h2 class="text-3xl font-bold mb-6 text-gray-800">Driver Payout Requests</h2>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-4">
+          {% for category, message in messages %}
+            <div class="p-3 rounded mb-2 
+                {% if category == 'success' %}bg-green-100 text-green-800
+                {% elif category == 'danger' %}bg-red-100 text-red-800
+                {% else %}bg-blue-100 text-blue-800{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Table -->
+    <div class="overflow-x-auto bg-white shadow-lg rounded-lg">
+      <table class="min-w-full border-collapse">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-2 border text-left">Driver ID</th>
+            <th class="px-4 py-2 border text-left">Amount</th>
+            <th class="px-4 py-2 border text-left">Method</th>
+            <th class="px-4 py-2 border text-left">Status</th>
+            <th class="px-4 py-2 border text-left">Requested At</th>
+            <th class="px-4 py-2 border text-left">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payout in payouts %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-2 border">{{ payout.driver_id }}</td>
+            <td class="px-4 py-2 border">₹{{ "%.2f"|format(payout.amount) }}</td>
+            <td class="px-4 py-2 border">{{ payout.method|capitalize }}</td>
+            <td class="px-4 py-2 border font-semibold">
+              {% if payout.status == 'requested' %}
+                <span class="text-yellow-600">Requested</span>
+              {% elif payout.status == 'approved' %}
+                <span class="text-green-600">Approved</span>
+              {% elif payout.status == 'processed' %}
+                <span class="text-blue-600">Processed</span>
+              {% else %}
+                <span class="text-red-600">Rejected</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 border">
+              {{ payout.requested_at.strftime("%Y-%m-%d %H:%M") }}
+            </td>
+            <td class="px-4 py-2 border space-x-2">
+              {% if payout.status == 'requested' %}
+                <form action="{{ url_for('payout.approve_payout', payout_id=payout.id) }}" method="post" class="inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                  <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded">Approve</button>
+                </form>
+                <form action="{{ url_for('payout.reject_payout', payout_id=payout.id) }}" method="post" class="inline">
+                  <input type="text" name="note" placeholder="Reason" class="border px-2 py-1 rounded">
+                  <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">Reject</button>
+                </form>
+              {% elif payout.status == 'approved' %}
+                <form action="{{ url_for('payout.process_payout', payout_id=payout.id) }}" method="post" class="inline">
+                  <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">Mark Processed</button>
+                </form>
+              {% else %}
+                <span class="text-gray-500">No Action</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

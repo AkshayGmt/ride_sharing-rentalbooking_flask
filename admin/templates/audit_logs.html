@@ -1,0 +1,23 @@
+<h2>Security & Audit Logs</h2>
+<table class="table table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Time</th>
+            <th>Admin</th>
+            <th>Action</th>
+            <th>User ID</th>
+            <th>Details</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.admin }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ log.user_id }}</td>
+            <td>{{ log.details }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Driver Activity Monitoring</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+    .sidebar {
+      width: 250px;
+      background: #343a40;
+      color: white;
+      padding: 20px;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .sidebar h4 {
+      margin-bottom: 20px;
+    }
+    .sidebar a {
+      display: block;
+      color: white;
+      text-decoration: none;
+      padding: 8px 0;
+    }
+    .sidebar a:hover {
+      text-decoration: underline;
+    }
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    #map {
+      height: 500px;
+      width: 100%;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h4>Driver Management</h4>
+    <a href="/admin/dashboard">⬅ Back to Dashboard</a>
+    <hr>
+    <a href="/admin/driver_management/approve">Approve / Reject Registrations</a>
+    <a href="/admin/driver_management/documents">Verify Documents</a>
+    <a href="/admin/driver_management/activity">Track Activity & Location</a>
+    <a href="/admin/driver_management/controls">Additional Controls</a>
+    <a href="/admin/driver_management/time_tagging">Time-of-Day Tagging</a>
+    <a href="/admin/driver_management/exceptions">Edge Cases & Exceptions</a>
+    <a href="/admin/driver_management/subscription">Driver Subscription</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <h2>Driver Activity Monitoring</h2>
+
+    <!-- Filter/Search Bar -->
+    <form id="filter-form" class="row g-2 mb-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="col-md-3">
+        <input type="text" name="name" placeholder="Search by Name" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <input type="text" name="vehicle_type" placeholder="Search by Vehicle Type" class="form-control">
+      </div>
+      <div class="col-md-3">
+        <select name="online_status" class="form-select">
+          <option value="">All Status</option>
+          <option value="online">Online</option>
+          <option value="offline">Offline</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary flex-fill">Filter</button>
+        <button type="button" id="clear-filters" class="btn btn-secondary flex-fill">Clear</button>
+      </div>
+    </form>
+
+    <!-- Dynamic driver table -->
+    <div id="driver-table"></div>
+
+    <!-- Google Map -->
+    <div id="map"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <!-- Google Maps API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+
+  <script>
+    var map;
+    var markers = {};
+    var filters = {};
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 20.5937, lng: 78.9629 },
+        zoom: 5,
+      });
+      loadDrivers();
+      setInterval(loadDrivers, 5000);
+    }
+
+    function loadDrivers() {
+      $.getJSON("/admin/api/driver_activity", filters, function(data) {
+        // Clear existing markers
+        for (let id in markers) {
+          markers[id].setMap(null);
+        }
+        markers = {};
+
+        // Update driver table
+        var html = `<table class="table table-striped table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Name</th><th>Vehicle</th><th>Status</th><th>Active Ride</th>
+              <th>Acceptance Rate</th><th>Total Rides</th>
+            </tr>
+          </thead><tbody>`;
+
+        let bounds = new google.maps.LatLngBounds();
+
+        data.drivers.forEach(function(d) {
+          let rate = (d.rides_accepted + d.rides_rejected > 0) 
+            ? ((d.rides_accepted / (d.rides_accepted + d.rides_rejected)) * 100).toFixed(1) + "%" 
+            : "0%";
+
+          html += `<tr id="driver-${d.id}">
+            <td>${d.name}</td>
+            <td>${d.vehicle_type || '-'}</td>
+            <td>${d.online ? '<span class="badge bg-success">Online</span>' : '<span class="badge bg-secondary">Offline</span>'}</td>
+            <td>${d.active_ride_id || 'None'}</td>
+            <td>${rate}</td>
+            <td>${d.rides_completed}</td>
+          </tr>`;
+
+          if (d.latitude && d.longitude) {
+            let position = { lat: d.latitude, lng: d.longitude };
+            let marker = new google.maps.Marker({
+              position: position,
+              map: map,
+              title: d.name,
+            });
+            let infoWindow = new google.maps.InfoWindow({
+              content: `<b>${d.name}</b><br>Status: ${d.online ? "Online" : "Offline"}`,
+            });
+            marker.addListener("click", () => infoWindow.open(map, marker));
+            markers[d.id] = marker;
+            bounds.extend(position);
+          }
+        });
+
+        html += "</tbody></table>";
+        $("#driver-table").html(html);
+
+        if (!bounds.isEmpty()) {
+          map.fitBounds(bounds);
+        }
+      });
+    }
+
+    // Handle filters
+    $("#filter-form").on("submit", function(e) {
+      e.preventDefault();
+      filters = $(this).serializeArray().reduce(function(obj, item) {
+        obj[item.name] = item.value;
+        return obj;
+      }, {});
+      loadDrivers();
+    });
+
+    // Init Google Map after page load
+    window.onload = initMap;
+  </script>
+</body>
+</html>

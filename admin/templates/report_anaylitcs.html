@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Reports & Analytics</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      background: #f4f6f8;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background: #fff;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .sidebar h2 {
+      text-align: center;
+      padding: 20px 0;
+      margin: 0;
+      font-size: 20px;
+      font-weight: bold;
+      border-bottom: 1px solid #e2e8f0;
+      color: #333;
+    }
+    .sidebar nav {
+      display: flex;
+      flex-direction: column;
+      margin-top: 10px;
+    }
+    .sidebar a {
+      text-decoration: none;
+      padding: 12px 20px;
+      color: #333;
+      font-weight: 500;
+      transition: 0.2s;
+    }
+    .sidebar a:hover {
+      background: #e2e8f0;
+    }
+    .sidebar a.active {
+      background: #e2e8f0;
+      font-weight: bold;
+    }
+
+    /* Table container */
+    .table-container {
+      flex: 1;
+      padding: 30px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #3498db;
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+
+    tr:hover {
+      background: #e2e8f0;
+      transition: 0.2s;
+    }
+
+    .export-buttons a {
+      padding: 8px 12px;
+      margin-right: 5px;
+      background: #3498db;
+      color: white;
+      border-radius: 6px;
+      font-size: 12px;
+      text-decoration: none;
+      transition: 0.2s;
+    }
+    .export-buttons a:hover {
+      background: #2c80b4;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>Admin Panel</h2>
+    <nav>
+      <a href="{{ url_for('admin.user_management') }}">👤 User Management</a>
+      <a href="{{ url_for('admin.driver_management') }}">🚖 Driver Management</a>
+      <a href="{{ url_for('admin.vehicle_management') }}">🚘 Vehicle & Rental Management</a>
+      <a href="{{ url_for('admin.ride_rental_management') }}">🛣 Ride & Rental Management</a>
+      <a href="{{ url_for('admin.fare_pricing_dashboard') }}">💰 Fare & Commission</a>
+      <a href="{{ url_for('admin.payment_dashboard') }}">💳 Payment & Finance</a>
+      <a href="{{ url_for('admin.report_analiytics') }}" class="active">📊 Reports & Analytics</a>
+      <a href="{{ url_for('admin.notifications_alert') }}">🔔 Notifications & Alerts</a>
+      <a href="{{ url_for('admin.admin_login') }}">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <div class="table-container">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Reports & Analytics</h1>
+
+    
+
+    <!-- Dynamic Table -->
+    <table>
+      <thead>
+        <tr>
+          <th>Report Name</th>
+          <th>Description</th>
+          <th>Last Updated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Example row (dynamic data should be rendered here via Flask) -->
+        <tr>
+          <td>Ride / Rental History</td>
+          <td>View and analyze past ride and rental data</td>
+          <td>2025-09-17</td>
+          <td>
+            <a href="{{ url_for('admin.export_ride_history', fmt='csv') }}" class="px-2 py-1 bg-green-500 rounded text-white text-xs">Export CSV</a>
+            <a href="{{ url_for('admin.export_ride_history', fmt='xlsx') }}" class="px-2 py-1 bg-blue-500 rounded text-white text-xs">Export Excel</a>
+              <a href="{{ url_for('admin.export_ride_history', fmt='pdf') }}">PDF</a>
+          </td>
+        </tr>
+        <tr>
+          <td>Revenue Reports</td>
+          <td>Track daily, weekly, and monthly earnings</td>
+          <td>2025-09-17</td>
+          <td>
+            <a href="{{ url_for('admin.export_revenue', fmt='csv') }}" class="px-2 py-1 bg-green-500 rounded text-white text-xs">Export CSV</a>
+            <a href="{{ url_for('admin.export_revenue', fmt='xlsx') }}" class="px-2 py-1 bg-blue-500 rounded text-white text-xs">Export Excel</a>
+            <a href="{{ url_for('admin.transaction_analytics') }}" class="px-2 py-1 bg-blue-500 rounded text-white text-xs"> Trasaction</a>
+          </td>
+        </tr>
+        <tr>
+          <td>Driver Performance</td>
+          <td>Analyze driver ratings, trips, and earnings</td>
+          <td>2025-09-17</td>
+          <td>
+            <a href="{{ url_for('admin.driver_performance') }}" class="px-2 py-1 bg-purple-500 rounded text-white text-xs">View</a>
+          </td>
+        </tr>
+        <!-- More rows can be added dynamically from backend -->
+      </tbody>
+    </table>

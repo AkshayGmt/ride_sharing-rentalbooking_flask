@@ -1,0 +1,150 @@
+<h2>Vehicle & Rental Management</h2>
+
+<!-- Filters -->
+<form id="ride-filter-form" class="row g-2 mb-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="col-md-2">
+    <input type="text" name="driver" placeholder="Driver Name" class="form-control">
+  </div>
+  <div class="col-md-2">
+    <input type="text" name="passenger" placeholder="Passenger Name" class="form-control">
+  </div>
+  <div class="col-md-2">
+    <select name="time_of_day" class="form-select">
+      <option value="">All Time Blocks</option>
+      <option value="Morning">Morning</option>
+      <option value="Afternoon">Afternoon</option>
+      <option value="Evening">Evening</option>
+      <option value="Night">Night</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select name="status" class="form-select">
+      <option value="">All Status</option>
+      <option value="Completed">Completed</option>
+      <option value="Cancelled">Cancelled</option>
+      <option value="Driver No-Show">Driver No-Show</option>
+    </select>
+  </div>
+  <div class="col-md-2 d-flex gap-2">
+    <button type="submit" class="btn btn-primary flex-fill">Filter</button>
+    <button type="button" id="clear-ride-filters" class="btn btn-secondary flex-fill">Clear</button>
+  </div>
+</form>
+
+<!-- Ride Table -->
+<div id="ride-table">
+  <table class="table table-striped table-hover">
+    <thead class="table-dark">
+      <tr>
+        <th>Ride ID</th>
+        <th>Pickup Time</th>
+        <th>Time of Day</th>
+        <th>Driver</th>
+        <th>Passenger</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ride in rides %}
+      <tr id="ride-{{ ride.id }}">
+        <td>{{ ride.id }}</td>
+        <td>{{ ride.pickup_time.strftime('%I:%M %p, %d-%m-%Y') }}</td>
+        <td>{{ ride.time_of_day or get_time_of_day(ride.pickup_time) }}</td>
+        <td>{{ ride.driver_name }}</td>
+        <td>{{ ride.passenger_name }}</td>
+        <td>
+          {% if ride.status == 'Driver No-Show' %}
+            <span class="badge bg-danger">{{ ride.status }}</span>
+          {% elif ride.status == 'Completed' %}
+            <span class="badge bg-success">{{ ride.status }}</span>
+          {% else %}
+            <span class="badge bg-secondary">{{ ride.status }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if ride.status == 'Driver No-Show' %}
+            <button class="btn btn-sm btn-warning resolve-no-show-btn" data-id="{{ ride.id }}">Resolve</button>
+          {% else %}
+            <button class="btn btn-sm btn-info view-details-btn" data-id="{{ ride.id }}">View Details</button>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- No-Show Resolve Modal -->
+<div class="modal fade" id="resolveNoShowModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5>Resolve Driver No-Show</h5></div>
+      <div class="modal-body">
+        <p>Take action for this driver no-show:</p>
+        <label>Notes / Penalty:</label>
+        <textarea id="no-show-notes" class="form-control"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-warning" id="confirm-no-show">Resolve</button>
+      </div>
+      {% if ride.unreachable_flag %}
+  <span class="badge bg-danger">Unreachable</span>
+  <button class="btn btn-sm btn-warning unreachable-action-btn" data-id="{{ ride.id }}" data-action="cancel">Cancel Ride</button>
+  <button class="btn btn-sm btn-info unreachable-action-btn" data-id="{{ ride.id }}" data-action="reassign">Reassign Driver</button>
+  <button class="btn btn-sm btn-secondary unreachable-action-btn" data-id="{{ ride.id }}" data-action="notify_support">Notify Support</button>
+{% endif %}
+
+    </div>
+  </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+let selectedRideId = null;
+
+// Filter rides
+$("#ride-filter-form").on("submit", function(e){
+  e.preventDefault();
+  let filters = $(this).serialize();
+  $.get("/admin/api/rides", filters, function(res){
+    $("#ride-table").html(res.html);
+  });
+});
+
+// Clear filters
+$("#clear-ride-filters").click(function(){
+  $("#ride-filter-form")[0].reset();
+  $.get("/admin/api/rides", {}, function(res){
+    $("#ride-table").html(res.html);
+  });
+});
+
+// Resolve No-Show
+$(document).on("click", ".resolve-no-show-btn", function(){
+  selectedRideId = $(this).data("id");
+  $("#resolveNoShowModal").modal("show");
+});
+
+$("#confirm-no-show").click(function(){
+  let notes = $("#no-show-notes").val();
+  $.post(`/admin/ride/no_show/${selectedRideId}`, { notes: notes }, function(res){
+    alert(res.message);
+    $("#resolveNoShowModal").modal("hide");
+    location.reload(); // refresh table after resolving
+  });
+  $(document).on("click", ".unreachable-action-btn", function(){
+    let rideId = $(this).data("id");
+    let action = $(this).data("action");
+
+    $.post(`/admin/ride/unreachable/${rideId}/${action}`, {}, function(res){
+        alert(res.message);
+        location.reload(); // refresh table
+    });
+});
+});
+</script>

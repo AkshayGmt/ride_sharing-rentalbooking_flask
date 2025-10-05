@@ -1,0 +1,72 @@
+<div class="container mt-4">
+  <h2>Disputes & Complaints</h2>
+  <table class="table table-bordered table-hover shadow-sm">
+    <thead class="table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Complainant</th>
+        <th>Role</th>
+        <th>Category</th>
+        <th>Details</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in complaints %}
+      <tr>
+        <td>{{ c.id }}</td>
+        <td>{{ c.user.name }}</td>
+        <td>{{ c.user.role }}</td>
+        <td>{{ c.category }}</td>
+        <td>{{ c.details }}</td>
+        <td><span class="badge bg-info">{{ c.status }}</span></td>
+        <td>
+          <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+            data-bs-target="#complaintModal{{ c.id }}">Review</button>
+        </td>
+      </tr>
+
+      <!-- Complaint Modal -->
+      <div class="modal fade" id="complaintModal{{ c.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+          <form method="POST" action="{{ url_for('admin_disputes.resolve', complaint_id=c.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Resolve Complaint #{{ c.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <p><b>Complainant:</b> {{ c.user.name }} ({{ c.user.role }})</p>
+                <p><b>Category:</b> {{ c.category }}</p>
+                <p><b>Details:</b> {{ c.details }}</p>
+                
+                <div class="mb-3">
+                  <label class="form-label">Resolution Notes</label>
+                  <textarea name="notes" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Action</label>
+                  <select class="form-select" name="action" required>
+                    <option value="resolved">Mark as Resolved</option>
+                    <option value="refund_partial">Refund (Partial)</option>
+                    <option value="refund_full">Refund (Full)</option>
+                    <option value="warning_driver">Warning to Driver</option>
+                    <option value="escalate">Escalate to Support</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-success">Apply</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

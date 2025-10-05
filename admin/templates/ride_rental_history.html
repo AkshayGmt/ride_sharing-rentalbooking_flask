@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ride / Rental History Reports</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto py-8">
+    <h2 class="text-3xl font-bold mb-6 text-gray-800">Ride / Rental History Reports</h2>
+
+    <!-- Filters -->
+    <form method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 bg-white p-4 rounded shadow">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div>
+        <label class="block text-sm font-medium">Start Date</label>
+        <input type="date" name="start_date" class="border px-2 py-1 w-full rounded">
+      </div>
+      <div>
+        <label class="block text-sm font-medium">End Date</label>
+        <input type="date" name="end_date" class="border px-2 py-1 w-full rounded">
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Vehicle</label>
+        <input type="text" name="vehicle" placeholder="Vehicle" class="border px-2 py-1 w-full rounded">
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Driver</label>
+        <input type="text" name="driver" placeholder="Driver" class="border px-2 py-1 w-full rounded">
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Status</label>
+        <select name="status" class="border px-2 py-1 w-full rounded">
+          <option value="">All</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+          <option value="Ongoing">Ongoing</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Ride Type</label>
+        <select name="ride_type" class="border px-2 py-1 w-full rounded">
+          <option value="">All</option>
+          <option value="Ride">Ride</option>
+          <option value="Rental">Rental</option>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Filter</button>
+      </div>
+    </form>
+<!-- Pagination -->
+<div class="flex justify-center items-center mt-6 space-x-2">
+  {% if page > 1 %}
+    <a href="{{ url_for('reports.ride_history', page=page-1) }}"
+       class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">Previous</a>
+  {% endif %}
+
+  {% for p in range(1, total_pages + 1) %}
+    <a href="{{ url_for('reports.ride_history', page=p) }}"
+       class="px-3 py-2 rounded 
+              {% if p == page %}
+                bg-blue-600 text-white
+              {% else %}
+                bg-gray-200 hover:bg-gray-300
+              {% endif %}">
+      {{ p }}
+    </a>
+  {% endfor %}
+
+  {% if page < total_pages %}
+    <a href="{{ url_for('reports.ride_history', page=page+1) }}"
+       class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">Next</a>
+  {% endif %}
+</div>
+
+    <!-- Export Buttons -->
+    <div class="mb-4 space-x-2">
+      <a href="{{ url_for('reports.export_ride_history', fmt='csv') }}" class="bg-gray-700 text-white px-3 py-2 rounded">Export CSV</a>
+      <a href="{{ url_for('reports.export_ride_history', fmt='excel') }}" class="bg-green-600 text-white px-3 py-2 rounded">Export Excel</a>
+      <a href="{{ url_for('reports.export_ride_history', fmt='pdf') }}" class="bg-red-600 text-white px-3 py-2 rounded">Export PDF</a>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto bg-white shadow rounded">
+      <table class="min-w-full border-collapse">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-2 border">Date</th>
+            <th class="px-4 py-2 border">Passenger</th>
+            <th class="px-4 py-2 border">Driver</th>
+            <th class="px-4 py-2 border">Vehicle</th>
+            <th class="px-4 py-2 border">Pickup</th>
+            <th class="px-4 py-2 border">Drop</th>
+            <th class="px-4 py-2 border">Fare</th>
+            <th class="px-4 py-2 border">Status</th>
+            <th class="px-4 py-2 border">Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rides %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-2 border">{{ r.date.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td class="px-4 py-2 border">{{ r.passenger }}</td>
+            <td class="px-4 py-2 border">{{ r.driver }}</td>
+            <td class="px-4 py-2 border">{{ r.vehicle }}</td>
+            <td class="px-4 py-2 border">{{ r.pickup }}</td>
+            <td class="px-4 py-2 border">{{ r.drop }}</td>
+            <td class="px-4 py-2 border">₹{{ "%.2f"|format(r.fare) }}</td>
+            <td class="px-4 py-2 border">{{ r.status }}</td>
+            <td class="px-4 py-2 border">{{ r.ride_type }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="9" class="px-4 py-4 text-center text-gray-500">No records found</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

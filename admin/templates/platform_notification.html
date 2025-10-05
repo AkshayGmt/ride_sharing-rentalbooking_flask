@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Platform-Wide Notifications</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<div class="container mx-auto py-8">
+  <h2 class="text-3xl font-bold mb-6 text-gray-800">📢 Platform-Wide Notifications</h2>
+
+  <!-- Notification Form -->
+  <form id="notifForm" class="bg-white rounded-lg shadow p-6 mb-8 space-y-4">
+    
+    <!-- Target Users -->
+    <div>
+      <label class="font-semibold block mb-2">Target Users:</label>
+      <label><input type="checkbox" name="target_users" value="passengers"> Passengers</label>
+      <label class="ml-4"><input type="checkbox" name="target_users" value="renters"> Renters</label>
+      <label class="ml-4"><input type="checkbox" name="target_users" value="drivers"> Drivers</label>
+      <label class="ml-4"><input type="checkbox" name="target_users" value="all"> All</label>
+    </div>
+
+    <!-- Notification Types -->
+    <div>
+      <label class="font-semibold block mb-2">Notification Type:</label>
+      <select name="notification_type" class="border rounded px-3 py-2 w-full">
+        <option value="announcement">Announcement</option>
+        <option value="promotion">Promotion</option>
+        <option value="service_update">Service Update</option>
+        <option value="maintenance">Maintenance Alert</option>
+      </select>
+    </div>
+
+    <!-- Delivery Methods -->
+    <div>
+      <label class="font-semibold block mb-2">Delivery Method:</label>
+      <label><input type="checkbox" name="delivery_methods" value="push"> Push</label>
+      <label class="ml-4"><input type="checkbox" name="delivery_methods" value="email"> Email</label>
+      <label class="ml-4"><input type="checkbox" name="delivery_methods" value="sms"> SMS</label>
+    </div>
+
+    <!-- Message -->
+    <div>
+      <label class="font-semibold block mb-2">Message:</label>
+      <textarea name="message" rows="3" class="border rounded px-3 py-2 w-full"></textarea>
+    </div>
+
+    <!-- Scheduling -->
+    <div>
+      <label class="font-semibold block mb-2">Schedule Time:</label>
+      <input type="datetime-local" name="scheduled_time" class="border rounded px-3 py-2 w-full">
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+      Send Notification
+    </button>
+  </form>
+
+  <!-- Notification Tracking Table -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h3 class="text-xl font-semibold mb-4">📊 Sent Notifications</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full border text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-3 py-2 border">Message</th>
+            <th class="px-3 py-2 border">Type</th>
+            <th class="px-3 py-2 border">Target</th>
+            <th class="px-3 py-2 border">Methods</th>
+            <th class="px-3 py-2 border">Scheduled</th>
+            <th class="px-3 py-2 border">Delivered</th>
+            <th class="px-3 py-2 border">Read</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for n in notifications %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-3 py-2 border">{{ n.message }}</td>
+            <td class="px-3 py-2 border">{{ n.notification_type }}</td>
+            <td class="px-3 py-2 border">{{ n.target_users|join(', ') }}</td>
+            <td class="px-3 py-2 border">{{ n.delivery_methods|join(', ') }}</td>
+            <td class="px-3 py-2 border">{{ n.scheduled_time.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td class="px-3 py-2 border">{{ n.delivered_count }}</td>
+            <td class="px-3 py-2 border">{{ n.read_count }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-4 text-gray-500">No notifications sent yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+<script>
+  // Connect to Flask-SocketIO
+  const socket = io();
+
+  // Listen for notifications
+  socket.on("new_notification", function(data){
+    console.log("📢 New Notification:", data);
+
+    // Show popup to admin
+    const popup = document.createElement("div");
+    popup.className = "fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-3 rounded shadow-lg";
+    popup.innerHTML = `<strong>${data.type.toUpperCase()}</strong><br>${data.message}`;
+    document.body.appendChild(popup);
+
+    // Auto-remove after 5s
+    setTimeout(() => popup.remove(), 5000);
+
+    // Optionally update table without reload
+    location.reload();
+  });
+</script>
+
+
+</body>
+</html>

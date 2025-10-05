@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard - Notifications & Alerts</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #1e293b; /* dark navy */
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .sidebar h2 {
+      text-align: center;
+      padding: 20px 0;
+      margin: 0;
+      font-size: 20px;
+      font-weight: bold;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar nav {
+      display: flex;
+      flex-direction: column;
+      margin-top: 10px;
+    }
+    .sidebar a {
+      text-decoration: none;
+      padding: 14px 20px;
+      color: #cbd5e1;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: 0.2s;
+    }
+    .sidebar a:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .sidebar a.active {
+      background: #334155;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+    .main h1 {
+      font-size: 26px;
+      margin-bottom: 25px;
+      color: #1e293b;
+    }
+
+    /* Notification Cards */
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .card h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+    .card p {
+      margin: 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    /* Accent colors by type */
+    .blue { border-left: 6px solid #3498db; }
+    .red { border-left: 6px solid #e74c3c; }
+    .green { border-left: 6px solid #2ecc71; }
+    .yellow { border-left: 6px solid #f1c40f; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>⚙️ Admin Panel</h2>
+    <nav>
+      <a href="{{ url_for('admin.user_management') }}">👤 User Management</a>
+      <a href="{{ url_for('admin.driver_management') }}">🚖 Driver Management</a>
+      <a href="{{ url_for('admin.vehicle_management') }}">🚘 Vehicle & Rental Management</a>
+      <a href="{{ url_for('admin.ride_rental_management') }}">🛣 Ride & Rental Management</a>
+      <a href="{{ url_for('admin.fare_pricing_dashboard') }}">💰 Fare & Commission</a>
+      <a href="{{ url_for('admin.payment_dashboard') }}">💳 Payment & Finance</a>
+      <a href="{{ url_for('admin.report_analiytics') }}">📊 Reports & Analytics</a>
+      <a href="{{ url_for('admin.notifications_alert') }}" class="active">🔔 Notifications & Alerts</a>
+      <a href="{{ url_for('admin.admin_login') }}">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main">
+    <h1>📢 Notifications Dashboard</h1>
+
+    <div class="cards">
+      <!-- Platform-Wide Notifications -->
+      <a href="{{ url_for('admin.create_notification') }}" class="card blue">
+        <h3>🌍 Platform-Wide Notifications</h3>
+        <p>Send announcements or urgent messages to all users (drivers & passengers).</p>
+      </a>
+
+      <!-- Admin Alerts -->
+      <a href="{{ url_for('admin.admin_alerts') }}" class="card red">
+        <h3>⚠️ Admin Alerts</h3>
+        <p>System alerts, fraud detection warnings, and important updates for admins only.</p>
+      </a>
+
+      <!-- Payment Notifications -->
+      <a  href="{{ url_for('admin.payment_notifications') }}" class="card green">
+ 
+        <h3>💳 Payment Notifications</h3>
+        <p>View recent payments, refunds, failed transactions, and pending payments.</p>
+      </a>
+
+      <!-- Complaint Notifications -->
+<a href="{{ url_for('admin.complaint_notifications') }}" class="card yellow">
+        <h3>📝 Complaint Notifications</h3>
+        <p>Track user complaints, disputes, or reported issues submitted by passengers/drivers.</p>
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>

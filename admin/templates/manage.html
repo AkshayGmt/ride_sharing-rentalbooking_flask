@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin — User Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #f5f7fa;
+      display: flex;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #2c3e50;
+      color: white;
+      height: 100vh;
+      padding: 20px;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+    .sidebar h2 {
+      font-size: 20px;
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: bold;
+    }
+    .sidebar nav a {
+      display: block;
+      padding: 12px;
+      margin: 6px 0;
+      text-decoration: none;
+      color: #ecf0f1;
+      border-radius: 8px;
+      transition: all 0.3s;
+      font-size: 15px;
+    }
+    .sidebar nav a:hover {
+      background: #34495e;
+      transform: translateX(4px);
+    }
+    .sidebar nav a.active {
+      background: #16a085;
+      font-weight: bold;
+    }
+
+    /* Content Area */
+    .content {
+      margin-left: 260px;
+      padding: 30px;
+      width: calc(100% - 260px);
+    }
+
+    /* Search Card */
+    .filter-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+
+    /* Table */
+    .table-container {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .table thead {
+      background: #16a085;
+      color: white;
+    }
+    .table-hover tbody tr:hover {
+      background: rgba(22, 160, 133, 0.1);
+    }
+
+    /* Buttons */
+    .btn-sm {
+      border-radius: 6px;
+      padding: 5px 10px;
+      margin: 2px;
+    }
+    .btn-warning {
+      background: #f39c12;
+      border: none;
+    }
+    .btn-warning:hover {
+      background: #d68910;
+    }
+    .btn-info {
+      background: #3498db;
+      border: none;
+    }
+    .btn-info:hover {
+      background: #2e86c1;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <h2>Admin Panel</h2>
+  <nav>
+    <a href="{{ url_for('admin.user_management') }}" class="active">👤 User Management</a>
+    <a href="{{ url_for('admin.driver_management') }}">🚖 Driver Management</a>
+    <a href="{{ url_for('admin.vehicle_management') }}">🚘 Vehicle & Rental Management</a>
+    <a href="{{ url_for('admin.ride_rental_management') }}">🛣 Ride & Rental Management</a>
+    <a href="{{ url_for('admin.fare_pricing_dashboard') }}">💰 Fare & Commission</a>
+    <a href="{{ url_for('admin.payment_dashboard') }}">💳 Payment & Finance</a>
+    <a href="{{ url_for('admin.report_analiytics') }}">📊 Reports & Analytics</a>
+    <a href="{{ url_for('admin.notifications_alert') }}">🔔 Notifications & Alerts</a>
+    <a href="{{ url_for('admin.admin_login') }}">🚪 Logout</a>
+  </nav>
+</aside>
+
+<!-- Main Content -->
+<div class="content">
+  <h2 class="mb-4">👤 User Management</h2>
+
+  <!-- Filter/Search Card -->
+  <div class="filter-card">
+    <form method="get" class="row g-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="col-md-5">
+        <input type="text" name="search" class="form-control" 
+               placeholder="🔍 Search by name, email, phone" 
+               value="{{ search_query }}">
+      </div>
+      <div class="col-md-3">
+        <select name="status" class="form-select">
+          <option value="">All Status</option>
+          <option value="Active" {% if filter_status=="Active" %}selected{% endif %}>Active</option>
+          <option value="Suspended" {% if filter_status=="Suspended" %}selected{% endif %}>Suspended</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-success w-100">Apply</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container">
+    <table class="table table-striped table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Total Rides</th>
+          <th>Total Rentals</th>
+          <th>Registered On</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.phone }}</td>
+          <td>
+            {% if user.status == "Active" %}
+              <span class="badge bg-success">Active</span>
+            {% else %}
+              <span class="badge bg-danger">Suspended</span>
+            {% endif %}
+          </td>
+          <td>{{ user.total_rides }}</td>
+          <td>{{ user.total_rentals }}</td>
+          <td>{{ user.registration_date }}</td>
+          <td class="text-center">
+            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-sm btn-warning">✏ Edit</a>
+            <a href="{{ url_for('admin.user_activity', user_id=user.id) }}" class="btn btn-sm btn-info">📊 Activity</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

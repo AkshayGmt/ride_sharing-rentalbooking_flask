@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Activity Monitoring</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f5f7fa;
+    }
+    .card {
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+    .nav-tabs .nav-link.active {
+      background-color: #16a085;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 6px 6px 0 0;
+    }
+    .badge {
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body class="p-4">
+
+  <h2 class="mb-4">👤 Activity Monitoring — {{ passenger.name }}</h2>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="activityTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="rides-tab" data-bs-toggle="tab" data-bs-target="#rides" type="button" role="tab">🚖 Ride & Rental History</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="payments-tab" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab">💳 Payment History</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="complaints-tab" data-bs-toggle="tab" data-bs-target="#complaints" type="button" role="tab">⚠ Complaints</button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="activityTabsContent">
+
+    <!-- Rides & Rentals -->
+    <div class="tab-pane fade show active" id="rides" role="tabpanel">
+      <div class="card p-3">
+        <h5 class="mb-3">🚖 Ride & Rental History</h5>
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Type</th><th>Pickup</th><th>Drop</th><th>Date</th><th>Status</th><th>Fare</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ride in rides %}
+            <tr>
+              <td>{{ ride.type }}</td>
+              <td>{{ ride.pickup }}</td>
+              <td>{{ ride.drop }}</td>
+              <td>{{ ride.date }}</td>
+              <td>
+                {% if ride.status == "Completed" %}
+                  <span class="badge bg-success">Completed</span>
+                {% elif ride.status == "Ongoing" %}
+                  <span class="badge bg-warning text-dark">Ongoing</span>
+                {% else %}
+                  <span class="badge bg-danger">Cancelled</span>
+                {% endif %}
+              </td>
+              <td>₹{{ ride.fare }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Payments -->
+    <div class="tab-pane fade" id="payments" role="tabpanel">
+      <div class="card p-3">
+        <h5 class="mb-3">💳 Payment History</h5>
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Date</th><th>Method</th><th>Amount</th><th>Status</th><th>Transaction ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pay in payments %}
+            <tr>
+              <td>{{ pay.date }}</td>
+              <td>{{ pay.method }}</td>
+              <td>₹{{ pay.amount }}</td>
+              <td>
+                {% if pay.status == "Success" %}
+                  <span class="badge bg-success">Success</span>
+                {% elif pay.status == "Pending" %}
+                  <span class="badge bg-warning text-dark">Pending</span>
+                {% else %}
+                  <span class="badge bg-danger">Failed</span>
+                {% endif %}
+              </td>
+              <td>{{ pay.txn_id }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Complaints -->
+    <div class="tab-pane fade" id="complaints" role="tabpanel">
+      <div class="card p-3">
+        <h5 class="mb-3">⚠ Complaints</h5>
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Date</th><th>Category</th><th>Description</th><th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in complaints %}
+            <tr>
+              <td>{{ c.date }}</td>
+              <td>{{ c.category }}</td>
+              <td>{{ c.description }}</td>
+              <td>
+                {% if c.status == "Resolved" %}
+                  <span class="badge bg-success">Resolved</span>
+                {% elif c.status == "Pending" %}
+                  <span class="badge bg-warning text-dark">Pending</span>
+                {% else %}
+                  <span class="badge bg-danger">Rejected</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{{ url_for('admin.resolve_complaint', complaint_id=c.id) }}" class="btn btn-sm btn-primary">Resolve</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

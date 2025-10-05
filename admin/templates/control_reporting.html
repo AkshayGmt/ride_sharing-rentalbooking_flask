@@ -1,0 +1,106 @@
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header"><strong>Referral Admin Controls & Reporting</strong></div>
+    <div class="card-body">
+
+      <!-- Settings -->
+      <h5>Referral Campaign Settings</h5>
+      <div class="row g-2 mb-3">
+        <div class="col-md-3">
+          <label>New Rider Referral Reward (₹)</label>
+          <input type="number" class="form-control" id="user_reward" value="{{ settings.user_reward }}">
+        </div>
+        <div class="col-md-3">
+          <label>New Driver Referral Reward (₹)</label>
+          <input type="number" class="form-control" id="driver_reward" value="{{ settings.driver_reward }}">
+        </div>
+        <div class="col-md-3">
+          <label>Campaign Active</label><br>
+          <input type="checkbox" id="referral_active" {% if settings.active %}checked{% endif %}>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button class="btn btn-primary" id="save_settings">Save Settings</button>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Summary -->
+      <h5>Referral Summary</h5>
+      <div class="row mb-3">
+        <div class="col-md-4"><strong>Total Rewards Given:</strong> ₹{{ total_rewards }}</div>
+        <div class="col-md-4"><strong>New Users via Referrals:</strong> {{ new_users }}</div>
+        <div class="col-md-4"><strong>New Drivers via Referrals:</strong> {{ new_drivers }}</div>
+      </div>
+
+      <!-- Reward Logs -->
+      <h5>Referral Reward Logs</h5>
+      <table class="table table-bordered table-hover">
+        <thead>
+          <tr>
+            <th>Referrer ID</th>
+            <th>Referred ID</th>
+            <th>User Type</th>
+            <th>Reward Amount (₹)</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td>{{ log.referrer_id }}</td>
+            <td>{{ log.referred_id }}</td>
+            <td>{{ log.user_type }}</td>
+            <td>{{ log.reward_amount }}</td>
+            <td>{{ log.status }}</td>
+            <td>{{ log.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td>
+              {% if not log.revoked_by_admin %}
+              <button class="btn btn-danger btn-sm revoke-btn" data-id="{{ log.id }}">Revoke</button>
+              {% else %}
+              <span class="text-muted">Revoked</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('save_settings').addEventListener('click', ()=>{
+    fetch('/admin/referral/update_settings', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            user_reward: parseFloat(document.getElementById('user_reward').value),
+            driver_reward: parseFloat(document.getElementById('driver_reward').value),
+            active: document.getElementById('referral_active').checked
+        })
+    }).then(r=>r.json()).then(d=>{
+        if(d.success) alert('Referral settings updated!');
+    });
+});
+
+// Revoke buttons
+document.querySelectorAll('.revoke-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+        const log_id = btn.getAttribute('data-id');
+        const reason = prompt("Reason for revoking this reward:", "Fraudulent referral");
+        if(reason){
+            fetch(`/admin/referral/revoke/${log_id}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({reason})
+            }).then(r=>r.json()).then(d=>{
+                if(d.success) location.reload();
+                else alert("Failed to revoke");
+            });
+        }
+    });
+});
+</script>

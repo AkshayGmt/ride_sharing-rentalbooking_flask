@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      background: #f8f9fa;
+      font-family: Arial, sans-serif;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: #fff;
+      border-right: 1px solid #dee2e6;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding-top: 20px;
+      box-shadow: 2px 0 6px rgba(0,0,0,0.05);
+    }
+    .sidebar h2 {
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .sidebar nav a {
+      display: block;
+      padding: 12px 20px;
+      color: #333;
+      text-decoration: none;
+      transition: 0.2s;
+      font-weight: 500;
+    }
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      background: #e9ecef;
+      color: #0d6efd;
+      border-left: 4px solid #0d6efd;
+    }
+    /* Main Content */
+    .main {
+      margin-left: 240px;
+      padding: 30px;
+      flex: 1;
+    }
+    .card-header {
+      font-weight: bold;
+    }
+    .table thead {
+      background: #0d6efd;
+      color: #fff;
+    }
+    .icon-cell {
+      font-size: 22px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>Admin Panel</h2>
+    <nav>
+      <a href="{{ url_for('admin.user_management') }}">👤 User Management</a>
+      <a href="{{ url_for('admin.driver_management') }}">🚖 Driver Management</a>
+      <a href="{{ url_for('admin.vehicle_management') }}">🚘 Vehicle & Rental</a>
+      <a href="{{ url_for('admin.ride_rental_management') }}">🛣 Ride & Rental</a>
+      <a href="{{ url_for('admin.fare_pricing_dashboard') }}" class="active">💰 Fare & Commission</a>
+      <a href="{{ url_for('admin.payment_dashboard') }}">💳 Payment & Finance</a>
+      <a href="{{ url_for('admin.report_analiytics') }}">📊 Reports</a>
+      <a href="{{ url_for('admin.notifications_alert') }}">🔔 Notifications</a>
+      <a href="{{ url_for('admin.admin_login') }}">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <h2 class="mb-4">Fare & Tier Management</h2>
+    <div class="row">
+      <!-- Left Column: City Tier -->
+      <div class="col-md-5">
+        <div class="card mb-3 shadow-sm">
+          <div class="card-header bg-info text-white">City Tier Management</div>
+          <div class="card-body">
+            <form action="{{ url_for('admin.add_city_tier') }}" method="POST">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="mb-2">
+                <label>City Name</label>
+                <input type="text" name="city_name" class="form-control" placeholder="Enter city name">
+              </div>
+              <div class="mb-2">
+                <label>Tier</label>
+                <select name="tier" class="form-select">
+                  <option value="Tier 1">Tier 1</option>
+                  <option value="Tier 2">Tier 2</option>
+                  <option value="Tier 3">Tier 3</option>
+                </select>
+              </div>
+              <button class="btn btn-success w-100">Add / Update City Tier</button>
+            </form>
+
+            <hr>
+            <h6>Existing Cities</h6>
+            <ul class="list-group list-group-flush">
+              {% for city in city_tiers %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  {{ city.city_name }} <span class="badge bg-primary">{{ city.tier }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Fare Pricing -->
+      <div class="col-md-7">
+        <div class="card mb-3 shadow-sm">
+          <div class="card-header bg-success text-white">Fare Pricing per Tier & Vehicle</div>
+          <div class="card-body">
+            <form action="{{ url_for('admin.add_fare_pricing') }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+              <div class="row g-2 mb-2">
+                <div class="col-md-4">
+                  <label>Vehicle Type</label>
+                  <select name="vehicle_type" class="form-select">
+                    <option>Car</option>
+                    <option>Bike</option>
+                    <option>Van</option>
+                    <option>Truck</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label>Ride Type</label>
+                  <select name="ride_type" class="form-select">
+                    <option>Shared</option>
+                    <option>Private</option>
+                    <option>Rental</option>
+                    <option>Cargo</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label>City Tier</label>
+                  <select name="tier" class="form-select">
+                    <option value="Tier 1">Tier 1</option>
+                    <option value="Tier 2">Tier 2</option>
+                    <option value="Tier 3">Tier 3</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row g-2 mb-2">
+                <div class="col-md-4">
+                  <label>Base Fare (₹)</label>
+                  <input type="number" name="base_fare" class="form-control">
+                </div>
+                <div class="col-md-4">
+                  <label>Per KM Charge (₹)</label>
+                  <input type="number" name="per_km" class="form-control">
+                </div>
+                <div class="col-md-4">
+                  <label>Per Minute Charge (₹)</label>
+                  <input type="number" name="per_minute" class="form-control">
+                </div>
+              </div>
+              <button class="btn btn-success w-100">Add / Update Fare</button>
+            </form>
+
+            <hr>
+            <h6>Existing Fare Rules</h6>
+            <table class="table table-sm table-hover">
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Ride Type</th>
+                  <th>Tier</th>
+                  <th>Base Fare</th>
+                  <th>Per KM</th>
+                  <th>Per Min</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for fare in pricing %}
+                  <tr>
+                    <td>{{ fare.vehicle_type }}</td>
+                    <td>{{ fare.ride_type }}</td>
+                    <td>{{ fare.tier }}</td>
+                    <td>₹{{ fare.base_fare }}</td>
+                    <td>₹{{ fare.per_km }}</td>
+                    <td>₹{{ fare.per_minute }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Functions -->
+    <h2 class="mt-5 mb-3">Payment & Finance Functions</h2>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle text-center">
+        <thead>
+          <tr>
+            <th style="width: 60px;">Icon</th>
+            <th>Feature</th>
+            <th>Description</th>
+            <th style="width: 120px;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="icon-cell text-primary"><i class="bi bi-journal-text"></i></td>
+            <td><strong>Track All Transactions</strong></td>
+            <td>View all payments, wallet transactions, refunds, and commission records.</td>
+            <td><a href="{{ url_for('admin.get_transactions') }}" class="btn btn-sm btn-primary">Open</a></td>
+          </tr>
+          <tr>
+            <td class="icon-cell text-success"><i class="bi bi-cash-stack"></i></td>
+            <td><strong>Approve Driver Payouts</strong></td>
+            <td>Review and approve scheduled driver payouts and commissions.</td>
+            <td><a href="{{ url_for('admin.list_payouts') }}" class="btn btn-sm btn-success">Open</a></td>
+          </tr>
+          <tr>
+            <td class="icon-cell text-danger"><i class="bi bi-arrow-counterclockwise"></i></td>
+            <td><strong>Refund Management</strong></td>
+            <td>Manage passenger refunds and adjustments to fares.</td>
+            <td><a href="{{ url_for('admin.list_refunds') }}" class="btn btn-sm btn-danger">Open</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

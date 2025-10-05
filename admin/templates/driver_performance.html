@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Driver Performance Metrics</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+<div class="container mx-auto py-8">
+  <h2 class="text-3xl font-bold mb-6 text-gray-800">Driver Performance Metrics</h2>
+
+  <!-- Filters -->
+  <form method="POST" class="flex flex-wrap gap-4 bg-white p-4 rounded shadow mb-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div>
+      <label class="block text-sm font-medium">Start Date</label>
+      <input type="date" name="start_date" value="{{ start_date }}" class="border px-2 py-1 rounded">
+    </div>
+    <div>
+      <label class="block text-sm font-medium">End Date</label>
+      <input type="date" name="end_date" value="{{ end_date }}" class="border px-2 py-1 rounded">
+    </div>
+    <div class="flex items-end">
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Generate</button>
+    </div>
+  </form>
+
+  <!-- Leaderboard -->
+  <div class="bg-white p-4 rounded shadow mb-6">
+    <h3 class="text-lg font-semibold mb-2">Top Performing Drivers</h3>
+    <canvas id="earningsChart"></canvas>
+  </div>
+
+  <!-- Tabular Data -->
+  <div class="bg-white p-4 rounded shadow">
+    <h3 class="text-lg font-semibold mb-4">Driver Performance Data</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full border border-gray-300 text-sm">
+        <thead class="bg-gray-200 text-gray-700">
+          <tr>
+            <th class="px-3 py-2 border">Driver</th>
+            <th class="px-3 py-2 border">Total Rides</th>
+            <th class="px-3 py-2 border">Total Rentals</th>
+            <th class="px-3 py-2 border">Acceptance Rate (%)</th>
+            <th class="px-3 py-2 border">Rejection Rate (%)</th>
+            <th class="px-3 py-2 border">Avg Rating</th>
+            <th class="px-3 py-2 border">Earnings (₹)</th>
+            <th class="px-3 py-2 border">Incentives (₹)</th>
+            <th class="px-3 py-2 border">Online Hours</th>
+            <th class="px-3 py-2 border">Utilization (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in drivers %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-3 py-2 border">{{ d["Driver"] }}</td>
+            <td class="px-3 py-2 border">{{ d["Total Rides"] }}</td>
+            <td class="px-3 py-2 border">{{ d["Total Rentals"] }}</td>
+            <td class="px-3 py-2 border">{{ d["Acceptance Rate"] }}</td>
+            <td class="px-3 py-2 border">{{ d["Rejection Rate"] }}</td>
+            <td class="px-3 py-2 border">{{ d["Avg Rating"] }}</td>
+            <td class="px-3 py-2 border">{{ d["Earnings"] }}</td>
+            <td class="px-3 py-2 border">{{ d["Incentives"] }}</td>
+            <td class="px-3 py-2 border">{{ d["Online Hours"] }}</td>
+            <td class="px-3 py-2 border">{{ d["Utilization"] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const drivers = {{ drivers|tojson }};
+  const names = drivers.map(d => d.Driver);
+  const earnings = drivers.map(d => d.Earnings);
+
+  new Chart(document.getElementById("earningsChart"), {
+    type: "bar",
+    data: { labels: names, datasets: [{ label: "Earnings (₹)", data: earnings, backgroundColor: "blue" }] }
+  });
+</script>
+</body>
+</html>

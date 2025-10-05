@@ -1,0 +1,162 @@
+<div class="container-fluid mt-4">
+
+  <!-- Section: Pricing Rules Table -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Pricing Rules</strong>
+      <button class="btn btn-sm btn-primary" id="addNewRuleBtn">Add New Rule</button>
+    </div>
+    <div class="card-body">
+      <table class="table table-striped table-hover" id="pricingRulesTable">
+        <thead>
+          <tr>
+            <th>City / Tier</th>
+            <th>Vehicle Type</th>
+            <th>Ride Type</th>
+            <th>Base Fare (₹)</th>
+            <th>Per KM (₹)</th>
+            <th>Per Minute (₹)</th>
+            <th>Commission %</th>
+            <th>Active</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rule in pricing_rules %}
+          <tr data-id="{{ rule.id }}">
+            <td><input type="text" class="form-control form-control-sm city_tier" value="{{ rule.city_tier }}"></td>
+            <td><input type="text" class="form-control form-control-sm vehicle_type" value="{{ rule.vehicle_type }}"></td>
+            <td><input type="text" class="form-control form-control-sm ride_type" value="{{ rule.ride_type }}"></td>
+            <td><input type="number" class="form-control form-control-sm base_fare" value="{{ rule.base_fare }}"></td>
+            <td><input type="number" class="form-control form-control-sm per_km" value="{{ rule.per_km }}"></td>
+            <td><input type="number" class="form-control form-control-sm per_minute" value="{{ rule.per_minute }}"></td>
+            <td><input type="number" class="form-control form-control-sm commission_percentage" value="{{ rule.commission_percentage }}"></td>
+            <td>
+              <input type="checkbox" class="rule_active" {% if rule.active %}checked{% endif %}>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-success save-rule">Save</button>
+              <button class="btn btn-sm btn-danger delete-rule">Delete</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      
+      <!-- CSV Upload -->
+      <form action="{{ url_for('pricing.import_csv') }}" method="POST" enctype="multipart/form-data" class="mt-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <input type="file" name="csv_file" accept=".csv" required>
+        <button class="btn btn-primary btn-sm">Upload CSV</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Section: Fare Preview -->
+  <div class="card mb-4">
+    <div class="card-header"><strong>Fare Preview</strong></div>
+    <div class="card-body">
+      <div class="row g-2 align-items-center">
+        <div class="col-md-2"><input type="text" id="preview_city" class="form-control form-control-sm" placeholder="City / Tier"></div>
+        <div class="col-md-2"><input type="text" id="preview_vehicle" class="form-control form-control-sm" placeholder="Vehicle Type"></div>
+        <div class="col-md-2"><input type="text" id="preview_ride" class="form-control form-control-sm" placeholder="Ride Type"></div>
+        <div class="col-md-2"><input type="number" id="preview_distance" class="form-control form-control-sm" placeholder="Distance (km)"></div>
+        <div class="col-md-2"><input type="number" id="preview_time" class="form-control form-control-sm" placeholder="Time (min)"></div>
+        <div class="col-md-2"><button id="calculateFareBtn" class="btn btn-info btn-sm w-100">Calculate Fare</button></div>
+      </div>
+      <p class="mt-2" id="fare_preview_result"></p>
+    </div>
+  </div>
+
+  <!-- Section: Audit / Versioning -->
+  <div class="card mb-4">
+    <div class="card-header"><strong>Pricing Rule Audit Log</strong></div>
+    <div class="card-body">
+      <table class="table table-striped table-hover" id="pricingAuditTable">
+        <thead>
+          <tr>
+            <th>Rule ID</th>
+            <th>Action</th>
+            <th>Admin</th>
+            <th>Timestamp</th>
+            <th>Changes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in pricing_audit_logs %}
+          <tr>
+            <td>{{ log.rule_id }}</td>
+            <td>{{ log.action }}</td>
+            <td>{{ log.admin_name }}</td>
+            <td>{{ log.timestamp }}</td>
+            <td>{{ log.changes }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+<script>
+// Save rule
+document.querySelectorAll('.save-rule').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+        let row = btn.closest('tr');
+        let id = row.dataset.id;
+        fetch(`/admin/pricing/${id}/edit`,{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                city_tier: row.querySelector('.city_tier').value,
+                vehicle_type: row.querySelector('.vehicle_type').value,
+                ride_type: row.querySelector('.ride_type').value,
+                base_fare: row.querySelector('.base_fare').value,
+                per_km: row.querySelector('.per_km').value,
+                per_minute: row.querySelector('.per_minute').value,
+                commission_percentage: row.querySelector('.commission_percentage').value,
+                active: row.querySelector('.rule_active').checked
+            })
+        }).then(r=>r.json()).then(d=>{ if(d.success) alert('Rule updated'); });
+    });
+});
+
+// Delete rule
+document.querySelectorAll('.delete-rule').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+        let row = btn.closest('tr');
+        let id = row.dataset.id;
+        if(confirm('Are you sure to delete this rule?')){
+            fetch(`/admin/pricing/${id}/delete`, {method:'POST'})
+            .then(r=>r.json()).then(d=>{ if(d.success) row.remove(); });
+        }
+    });
+});
+
+// Fare Preview Calculation
+document.getElementById('calculateFareBtn').addEventListener('click', ()=>{
+    let city = document.getElementById('preview_city').value;
+    let vehicle = document.getElementById('preview_vehicle').value;
+    let ride = document.getElementById('preview_ride').value;
+    let distance = parseFloat(document.getElementById('preview_distance').value || 0);
+    let time = parseFloat(document.getElementById('preview_time').value || 0);
+
+    // find rule
+    let row = [...document.querySelectorAll('#pricingRulesTable tbody tr')].find(r=>
+        r.querySelector('.city_tier').value===city &&
+        r.querySelector('.vehicle_type').value===vehicle &&
+        r.querySelector('.ride_type').value===ride
+    );
+    if(!row){ alert('Rule not found'); return; }
+
+    let base = parseFloat(row.querySelector('.base_fare').value);
+    let per_km = parseFloat(row.querySelector('.per_km').value);
+    let per_minute = parseFloat(row.querySelector('.per_minute').value);
+    let commission = parseFloat(row.querySelector('.commission_percentage').value);
+
+    let subtotal = base + (per_km*distance) + (per_minute*time);
+    let fare = subtotal + (subtotal*commission/100);
+    document.getElementById('fare_preview_result').innerText = "Estimated Fare: ₹"+fare.toFixed(2);
+});
+</script>

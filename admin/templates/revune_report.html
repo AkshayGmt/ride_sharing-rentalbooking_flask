@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Revenue Reports</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="container mx-auto py-8">
+    <h2 class="text-3xl font-bold mb-6 text-gray-800">Revenue Reports</h2>
+
+    <!-- Filters -->
+    <form method="POST" class="flex flex-wrap gap-4 bg-white p-4 rounded shadow mb-6">
+     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div>
+        <label class="block text-sm font-medium">Start Date</label>
+        <input type="date" name="start_date" value="{{ start_date }}" class="border px-2 py-1 rounded">
+      </div>
+      <div>
+        <label class="block text-sm font-medium">End Date</label>
+        <input type="date" name="end_date" value="{{ end_date }}" class="border px-2 py-1 rounded">
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Period</label>
+        <select name="period" class="border px-2 py-1 rounded">
+          <option value="daily" {% if period == "daily" %}selected{% endif %}>Daily</option>
+          <option value="weekly" {% if period == "weekly" %}selected{% endif %}>Weekly</option>
+          <option value="monthly" {% if period == "monthly" %}selected{% endif %}>Monthly</option>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Generate</button>
+      </div>
+    </form>
+<div class="flex items-end gap-2">
+  <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Generate</button>
+  
+  <!-- Export Buttons -->
+  <button formaction="{{ url_for('reports.export_revenue', fmt='csv') }}" formmethod="post"
+          class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded">Export CSV</button>
+  <button formaction="{{ url_for('reports.export_revenue', fmt='excel') }}" formmethod="post"
+          class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded">Export Excel</button>
+  <button formaction="{{ url_for('reports.export_revenue', fmt='pdf') }}" formmethod="post"
+          class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">Export PDF</button>
+</div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white p-4 rounded shadow">
+        <h3 class="text-lg font-semibold mb-2">Total Revenue</h3>
+        <canvas id="revenueChart"></canvas>
+      </div>
+
+      <div class="bg-white p-4 rounded shadow">
+        <h3 class="text-lg font-semibold mb-2">Rides vs Rentals</h3>
+        <canvas id="ridesRentalsChart"></canvas>
+      </div>
+
+      <div class="bg-white p-4 rounded shadow">
+        <h3 class="text-lg font-semibold mb-2">Platform Commission vs Driver Earnings</h3>
+        <canvas id="commissionChart"></canvas>
+      </div>
+      <!-- Tabular Preview -->
+<div class="bg-white p-4 rounded shadow mt-8">
+  <h3 class="text-lg font-semibold mb-4">Revenue Data Preview</h3>
+  <div class="overflow-x-auto">
+    <table class="min-w-full border border-gray-300 text-sm">
+      <thead class="bg-gray-200 text-gray-700">
+        <tr>
+          <th class="px-3 py-2 border">Period</th>
+          <th class="px-3 py-2 border">Total Revenue (₹)</th>
+          <th class="px-3 py-2 border">Rides (₹)</th>
+          <th class="px-3 py-2 border">Rentals (₹)</th>
+          <th class="px-3 py-2 border">Commission (₹)</th>
+          <th class="px-3 py-2 border">Driver Earnings (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-3 py-2 border">{{ row["Period"] }}</td>
+          <td class="px-3 py-2 border">{{ row["Total Revenue"] }}</td>
+          <td class="px-3 py-2 border">{{ row["Rides"] }}</td>
+          <td class="px-3 py-2 border">{{ row["Rentals"] }}</td>
+          <td class="px-3 py-2 border">{{ row["Commission"] }}</td>
+          <td class="px-3 py-2 border">{{ row["Driver Earnings"] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+  <script>
+    const labels = {{ labels|tojson }};
+    const revenue = {{ revenue|tojson }};
+    const rides = {{ rides|tojson }};
+    const rentals = {{ rentals|tojson }};
+    const commission = {{ commission|tojson }};
+    const driver_earnings = {{ driver_earnings|tojson }};
+
+    new Chart(document.getElementById("revenueChart"), {
+      type: "line",
+      data: { labels, datasets: [{ label: "Revenue (₹)", data: revenue, borderColor: "blue", fill: false }] }
+    });
+
+    new Chart(document.getElementById("ridesRentalsChart"), {
+      type: "bar",
+      data: { labels, datasets: [
+        { label: "Rides (₹)", data: rides, backgroundColor: "green" },
+        { label: "Rentals (₹)", data: rentals, backgroundColor: "orange" }
+      ]}
+    });
+
+    new Chart(document.getElementById("commissionChart"), {
+      type: "bar",
+      data: { labels, datasets: [
+        { label: "Platform Commission (₹)", data: commission, backgroundColor: "red" },
+        { label: "Driver Earnings (₹)", data: driver_earnings, backgroundColor: "purple" }
+      ]}
+    });
+  </script>
+</body>
+</html>
