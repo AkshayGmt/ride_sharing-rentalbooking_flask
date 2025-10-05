@@ -1,0 +1,16 @@
+<h2>Available Shared Trips</h2>
+{% for trip in trips %}
+  <div class="trip-card">
+    <p><b>Drop:</b> {{ trip.drop_location }}</p>
+    <p><b>Pickup Points:</b></p>
+    <ul>
+      {% for pickup in trip.pickup_points %}
+        <li>{{ pickup }}</li>
+      {% endfor %}
+    </ul>
+    <p><b>Passengers:</b> {{ trip.passenger_ids|length }}</p>
+    <form method="post" action="{{ url_for('driver.accept_trip', trip_id=trip.id) }}">
+      <button type="submit">Accept This Trip</button>
+    </form>
+  </div>
+{% endfor %}

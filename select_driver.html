@@ -1,0 +1,12 @@
+<h2>Select Your Driver</h2>
+{% for d in drivers %}
+  <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+    <img src="{{ url_for('static', filename=d.profile_photo) }}" width="80"><br>
+    <b>{{ d.name }}</b><br>
+    Vehicle: {{ d.vehicle_type }} ({{ d.vehicle_number }})<br>
+    Location: {{ d.latitude }}, {{ d.longitude }}<br>
+    <form method="POST" action="{{ url_for('passenger.confirm_driver', booking_id=booking.id, driver_id=d.id) }}">
+      <button type="submit">Choose Driver</button>
+    </form>
+  </div>
+{% endfor %}

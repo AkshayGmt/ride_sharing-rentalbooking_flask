@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Driver Settings</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      background: #f9fafb;
+    }
+
+    /* Sidebar styling */
+    .sidebar {
+      width: 250px;
+      background: #0ea5a2;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .sidebar img {
+      width: 100%;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+    .card-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .card {
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .card:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Main content styling */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      box-sizing: border-box;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      background: #0ea5a2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0c7c7a;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <a href="{{ url_for('driver.driver_dashboard') }}">
+      <img src="{{ url_for('static', filename='img/driver_logo.png') }}" alt="App Logo">
+    </a>
+    <div class="card-container">
+      <div class="card" onclick="location.href='{{ url_for('driver.upload_documents') }}'">📄 Upload Documents</div>
+      <div class="card" onclick="location.href='{{ url_for('driver.vehicle_registration') }}'">🚗 Vehicle Registration</div>
+      <div class="card" onclick="location.href='{{ url_for('driver.driver_subscription') }}'">💳 Subscription</div>
+      <div class="card" onclick="location.href='{{ url_for('driver.ride_management') }}'">🚖 Ride Management</div>
+      <div class="card" onclick="location.href='{{ url_for('driver.rental_management_dashboard') }}'">🚚 Rental Management</div>
+      <div class="card" onclick="location.href='{{ url_for('driver.earnings_dashboard') }}'">💰 Earnings</div>
+      <div class="card" onclick="location.href='{{ url_for('driver.notifications_dashboard') }}'">🔔 Notifications</div>
+      <div class="card" onclick="location.href='{{ url_for('driver.driver_settings') }}'">⚙️ Settings</div>
+      <div class="card" onclick="location.href='{{ url_for('driver.logout_driver') }}'">🚪 Logout</div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <div class="container">
+      <h2>⚙️ Driver Settings</h2>
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label>Name</label>
+        <input type="text" name="name" value="{{ driver.name }}" required>
+
+        <label>Email</label>
+        <input type="email" name="email" value="{{ driver.email }}" required>
+
+        <label>Phone</label>
+        <input type="text" name="phone" value="{{ driver.phone }}" required>
+
+        <label>Vehicle Type</label>
+        <select name="vehicle_type">
+          <option value="Car" {% if driver.vehicle_type == "Car" %}selected{% endif %}>Car</option>
+          <option value="Bike" {% if driver.vehicle_type == "Bike" %}selected{% endif %}>Bike</option>
+          <option value="Van" {% if driver.vehicle_type == "Van" %}selected{% endif %}>Van</option>
+          <option value="Truck" {% if driver.vehicle_type == "Truck" %}selected{% endif %}>Truck</option>
+        </select>
+
+        <label>Vehicle Number</label>
+        <input type="text" name="vehicle_number" value="{{ driver.vehicle_number }}">
+
+        <label>License Number</label>
+        <input type="text" name="license_number" value="{{ driver.license_number }}">
+
+        <label>Address</label>
+        <textarea name="address">{{ driver.address }}</textarea>
+
+        <button type="submit">💾 Save Changes</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

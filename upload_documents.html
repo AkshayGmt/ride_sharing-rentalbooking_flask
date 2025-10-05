@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Driver Upload Documents</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    display: flex;
+    height: 100vh;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    background: #1e293b;
+    color: white;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .sidebar img {
+    width: 90px;
+    margin-bottom: 15px;
+  }
+  .card-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+  .card {
+    background: #fff;
+    color: #1e293b;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    background: #f1f5f9;
+  }
+
+  /* Main content */
+  .content {
+    flex: 1;
+    display: flex;
+    justify-content: center; /* center form */
+    align-items: flex-start;
+    padding: 30px;
+    overflow-y: auto;
+  }
+  .form-container {
+    width: 90%;
+    max-width: 800px;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+  }
+  th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  th {
+    background: #16a085;
+    color: white;
+  }
+  tr:hover {
+    background: #f9f9f9;
+  }
+
+  input[type="file"], input[type="text"], input[type="date"] {
+    width: 95%;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    margin-bottom: 6px;
+  }
+
+  button {
+    padding: 10px 20px;
+    background: #16a085;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: block;
+    margin: 15px auto 0;
+  }
+  button:hover {
+    background: #138d75;
+  }
+
+  .message {
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .message.success { color: green; }
+  .message.error { color: red; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <a href="{{ url_for('driver.driver_dashboard') }}">
+    <img src="{{ url_for('static', filename='img/driver_logo.png') }}" alt="App Logo">
+  </a>
+  <div class="card-container">
+    <div class="card" onclick="location.href='{{ url_for('driver.upload_documents') }}'">📄 Upload Documents</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.vehicle_registration') }}'">🚗 Vehicle Registration</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.driver_subscription') }}'">💳 Subscription</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.ride_management') }}'">🚖 Ride Management</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.rental_management_dashboard') }}'">🚚 Rental Management</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.earnings_dashboard') }}'">💰 Earnings</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.notifications_dashboard') }}'">🔔 Notifications</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.driver_settings') }}'">⚙️ Settings</div>
+    <div class="card" onclick="location.href='{{ url_for('driver.logout_driver') }}'">🚪 Logout</div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="content">
+  <div class="form-container">
+    <h2>Upload Documents</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <p class="message {{ category }}">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <table>
+        <tr>
+          <th>Document</th>
+          <th>Upload</th>
+        </tr>
+        <tr>
+          <td>Driving License / Commercial Permit*</td>
+          <td><input type="file" name="driving_license" required></td>
+        </tr>
+        <tr>
+          <td>Vehicle Registration Certificate (RC)*</td>
+          <td><input type="file" name="vehicle_rc" required></td>
+        </tr>
+        <tr>
+          <td>ID Proof (Passport / Aadhaar / Govt ID)*</td>
+          <td><input type="file" name="id_proof" required></td>
+        </tr>
+        <tr>
+          <td>Insurance Document*</td>
+          <td>
+            <input type="file" name="insurance_file" required><br>
+            <input type="text" name="insurance_type" placeholder="Insurance Type" required><br>
+            <input type="text" name="provider" placeholder="Provider" required><br>
+            <input type="text" name="policy_number" placeholder="Policy Number" required><br>
+            <input type="date" name="policy_start" placeholder="Policy Start Date" required><br>
+            <input type="date" name="policy_expiry" placeholder="Policy Expiry Date" required><br>
+            <input type="text" name="vehicle_number" placeholder="Vehicle Number on Policy" required>
+          </td>
+        </tr>
+        <tr>
+          <td>Profile Photo (Optional)</td>
+          <td><input type="file" name="profile_photo"></td>
+        </tr>
+        <tr>
+          <td>Police Clearance Certificate (Optional)</td>
+          <td><input type="file" name="police_clearance"></td>
+        </tr>
+      </table>
+      <button type="submit">Upload Documents</button>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

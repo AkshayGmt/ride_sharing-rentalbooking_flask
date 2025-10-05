@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Driver Navigation</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f9fafb}
+    .header{background:#0ea5a2;color:white;padding:15px;text-align:center;font-size:20px}
+    #map{height:80vh;width:100%;margin-top:10px;border-radius:12px}
+    .info{padding:15px;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.1);margin:10px;border-radius:12px}
+    .btn{padding:10px 15px;background:#0ea5a2;color:white;border:none;border-radius:6px;cursor:pointer}
+    .btn:hover{background:#0c7c7a}
+  </style>
+  <!-- Google Maps API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=
+  --&libraries=places"></script>
+</head>
+<body>
+  <div class="header">🚗 Driver Navigation</div>
+
+  <div class="info">
+    <p><b>Pickup:</b> {{ pickup }}</p>
+    <p><b>Drop:</b> {{ drop }}</p>
+    <p><b>ETA:</b> {{ eta }}</p>
+    <button class="btn" onclick="startNavigation()">Start Ride</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    function initMap() {
+      var pickup = {lat: {{ pickup_lat }}, lng: {{ pickup_lng }} };
+      var drop = {lat: {{ drop_lat }}, lng: {{ drop_lng }} };
+
+      var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 13,
+        center: pickup
+      });
+
+      var pickupMarker = new google.maps.Marker({ position: pickup, map: map, label: "P" });
+      var dropMarker = new google.maps.Marker({ position: drop, map: map, label: "D" });
+
+      // Draw route
+      var directionsService = new google.maps.DirectionsService();
+      var directionsRenderer = new google.maps.DirectionsRenderer();
+      directionsRenderer.setMap(map);
+
+      var request = {
+        origin: pickup,
+        destination: drop,
+        travelMode: 'DRIVING'
+      };
+
+      directionsService.route(request, function(result, status) {
+        if (status == 'OK') {
+          directionsRenderer.setDirections(result);
+        }
+      });
+    }
+
+    function startNavigation(){
+      alert("Ride started 🚗 ... real-time tracking begins!");
+    }
+
+    window.onload = initMap;
+  </script>
+</body>
+</html>
